@@ -1,6 +1,6 @@
-Vincula Neo (v4.7) - eXonyte's MSN Chat connection script
+Vincula Neo (v4.8) - eXonyte's MSN Chat connection script
 
-Date: Sunday, January 19, 2003
+Date: Friday, July 18, 2003
 
 -----------------------------------------------------------------------
 
@@ -17,28 +17,40 @@ date to correct this, or the display events can be modified at will.
 
 -----------------------------------------------------------------------
 
-v4.7 - What's new:
-- Now uses Neo-Vortex's M$NChatX OCX instead of the patched one it was
-  using before.  This new OCX allows me to re-enable the "Join Room
-  using MSN Chat" options!  Many thanks!  See MSNChatX.txt for info.
-- As stated above, "Join Room using MSN Chat" is back.
-- Changed Vincula so that it doesn't always use port 6667.
-- Removed the Mass Kick prot that I accidentally left in 4.6. (Sorry!)
-- Added more characters to the decoder.
+v4.8 - What's new:
+- Passport updater should work fine again.
+- Should have the socket in use errors fixed. Vincula now reinstalls
+  MSNChatX every time you open mIRC.
+- Added a new /msn.resetocx command, which will reset the MSNChatX OCX
+  in case it gets unloaded somehow. Should make it easier to solve the
+  socket in use errors.
+- Passport Updater URLs are now autoupdated as needed.  The URLs are
+  now in the update checker's .txt file and in vincula.ini.
+- Added a new passport updater (/msn.getcookie) that will actually grab
+  your MSNREGCookie, as well as updating the rest of your info. Be
+  careful using it though, because it sometimes grabs the wrong
+  MSNREGCookie.
+- Changed the NOOP timer in the msn.server.* sockets, so now you
+  shouldn't flood off quite as easily.
+- It now displays the reason people set when they go /away. Thanks to
+  Ziggy for pointing out my overlooking of that.
+- I probably did a whole lot of other things too, but I don't remember
+  because I lost my list when I got a new computer.
 
-v4.6 - What's new:
-- Should work fine on Windows 98/ME systems again. Sorry about 4.5!
-- Got rid of those annoying DOS boxes in the process of fixing 98/ME.
-- Added a Cancel button to the Enter Name dialog, just in case you'd
-  rather not connect.
-- Fixed the auto passport updater again.
-- Fixed the "line 3133" bug (would happen when you're joining a room,
-  but you're banned.
-- Fixed a bug with exporting the Access list from the /access dialog
-- Fixed the /msn.setup problem where it would remember to use colors.
-- Rewrote the manual passport updater (/msn.mgetpp) so it works again.
-- Redid the /access dialog so it uses one edit instead of multiple,
-  makes copying an entry's information much easier.
+v4.7.1 - What's new:
+- Probably the fastest released Vincula update ever, oi.
+- Fixes the OCX installation bug that was in 4.7.  Only affected some
+  people that were upgrading.  Anyone installing it new wasn't being
+  affected by this bug.
+- Fixes the Cancel button in the msn.names dialog, so that it won't
+  clear your Recent Rooms list, and your stored passwords.
+- To make up for the mistakes, a new $msn.pass password generator is
+  in there, instead of only using letters and numbers it will use any
+  character between $chr(33) and $chr(255), except for , and : since
+  MSN won't allow them in passwords.
+- Errors from the MSN Lookups are now hidden, so that they won't bother
+  you anymore.  Also, when it gets an Error 908, it will automatically
+  reset the lookup connection so that it fixes it.
 
 For old What's New lists, see the end of this file.
 
@@ -303,12 +315,11 @@ Time Reply:
     The default button restores the time reply to match MSN Chat's.
 MSN Chat CLSID:
     When MSN updates the MSN Chat control, the identifier for it that's
-    called the Class ID or CLSID, changes.  In order for Vincula to
-    work right, it needs to know the current CLSID.  It will
-    automatically update the CLSID if you do a manual passport update,
-    or you can change it by editing it right here.  You can always find
-    the current CLSID at: http://exonyte.dyndns.org/msn.php
-    The default button sets the CLSID to MSN Chat Control 4.2's CLSID.
+    called the Class ID or CLSID, changes.  It will automatically
+    update the CLSID if you do a manual passport update, or you can
+    change it by editing it right here.  You can always find the
+    current CLSID at: http://exonyte.dyndns.org/msn.php
+    The default button sets the CLSID to MSN Chat Control 4.5's CLSID.
 
 On the Sounds tab:
     Here you can set sounds for various chat room events. Click the ...
@@ -351,6 +362,14 @@ then use /joinurl to join the room through Vincula.
 /msnchat.update
 ----------
 Use this to update your currently selected passport info.
+
+/msn.getcookie
+--------------
+Use this to update your currently selected passport info, as well as
+getting the MSNREGCookie, which contains your real passport name.
+NOTE: There is a bug in this updater, which will sometimes make it
+grab the wrong MSNREGCookie, in which case your name will show up as
+another of your passports.
 
 /msn.mgetpp
 ---------------
@@ -539,7 +558,7 @@ the editbox without %#room), or the owner key for for %#room.
 $msn.pass / $msn.pass(N)
 ------------------------
 Makes a randomly generated password N characters long. If N is not
-supplied, it will create an eight character password.
+supplied, it will create a thirty-one character password.
 
 $msn.ppdata(name,item)
 ----------------------
@@ -556,7 +575,7 @@ showprof - Profile type number
 updated  - The $ctime when the passport was last updated.
            Use $asctime($msn.ppdata(name,updated)) for a readable date.
 nick     - The Nickname entered for this passport (if any)
-lvnick   - Tells Vincula whether to $msn.encode on Nickname, or just
+lvnick   - Tells Vincula whether to $msn.encode the Nickname, or just
            use it as-is.
 
 $msn.roompass / $msn.roompass(%#room)
@@ -639,7 +658,7 @@ Real Name: Brandon A.
 Nickname: eXonyte
 E-mail: exonyte1@exonyte.dyndns.org
 
-Official Website: http://exonyte.dyndns.org
+Official Website: http://exonyte.dyndns.org/
 
 I'd like to thank my original testers: Trad, Moto, Atti, and Neo. To
 anyone else that I sent a copy of this thing to early on and forgot
@@ -658,7 +677,7 @@ If you would like to include this MSN connection addon with your own
 script:
 1) Make sure you mention that it was written by eXonyte.
    If you modified it in any way, please say so.
-2) Give my website address:  http://exonyte.dyndns.org
+2) Give my website address:  http://exonyte.dyndns.org/
 
 If you do these two things, then you don't even have to ask my
 permission to include it.  If your modifications fixed any bugs, please
@@ -683,6 +702,29 @@ Available at: http://www.mircscripts.org/comments.php?id=1439
 -----------------------------------------------------------------------
 
 Old What's New lists:
+
+v4.7 - What's new:
+- Now uses Neo-Vortex's M$NChatX OCX instead of the patched one it was
+  using before.  This new OCX allows me to re-enable the "Join Room
+  using MSN Chat" options!  Many thanks!  See MSNChatX.txt for info.
+- As stated above, "Join Room using MSN Chat" is back.
+- Changed Vincula so that it doesn't always use port 6667.
+- Removed the Mass Kick prot that I accidentally left in 4.6. (Sorry!)
+- Added more characters to the decoder.
+
+v4.6 - What's new:
+- Should work fine on Windows 98/ME systems again. Sorry about 4.5!
+- Got rid of those annoying DOS boxes in the process of fixing 98/ME.
+- Added a Cancel button to the Enter Name dialog, just in case you'd
+  rather not connect.
+- Fixed the auto passport updater again.
+- Fixed the "line 3133" bug (would happen when you're joining a room,
+  but you're banned.)
+- Fixed a bug with exporting the Access list from the /access dialog
+- Fixed the /msn.setup problem where it won't remember to use colors.
+- Rewrote the manual passport updater (/msn.mgetpp) so it works again.
+- Redid the /access dialog so it uses one edit instead of multiple,
+  makes copying an entry's information much easier.
 
 v4.5 - What's new:
 - Made it switch between your installed MSN Chat OCX and a hacked one,
@@ -933,4 +975,4 @@ v3.5 - What's new:
 v3.4 - Initial release
 
 -----------------------------------------------------------------------
-Copyright © 2002-2003 eXonyte                  Last Updated: 01/19/2003
+Copyright © 2002-2003 eXonyte                  Last Updated: 07/18/2003
