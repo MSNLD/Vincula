@@ -1,10 +1,10 @@
-Vincula Neo (v4.1) - eXonyte's New MSN Chat connection script
+Vincula Neo (v4.2) - eXonyte's New MSN Chat connection script
 
-Date: August 25, 2002
+Date: September 23, 2002
 
 -----------------------------------------------------------------------
 
-Requires mIRC 6.x, only tested in 6.01 and 6.03. Should work in 6.02.
+Requires mIRC 6.x, only tested in 6.03.
 WILL NOT work at all in mIRC 5.91 or lower.
 
 If you want to know things like the socket names, search in this file
@@ -17,25 +17,58 @@ date to correct this, or the display events can be modified at will.
 
 -----------------------------------------------------------------------
 
-v4.1 - What's new:
-- I accidentally left out a * which ended up breaking the "Edit" button
-  on the Passports tab in /msn.setup, it's fixed now.
-- Now the Auto Passport updater (/msn.getpp and the Refresh button in
-  /msn.setup) will tell you if it failed and why, instead of just
-  sitting there leaving you wondering.
-- Expanded the /access dialog so that I could fit the "Clear Denies"
-  button that I forgot to put in last version.
-- Cosmetic change in the on OPEN that handles incoming whispers.  Now
-  it will indent what the person said like it should.
-- The Passport updaters won't try to update now when you don't have a
-  passport loaded. Hi Rift! :P
-- Instead of not using $msn.roompass anymore I just changed the way it
-  works. Now it will give you either the ownerkey or the hostkey,
-  depending on if it knows one or the other.  You can still use
-  $msn.ownerkey or $msn.hostkey to get a specific key if you need them.
-- I forgot to mention it in 4.0, but there's a new popup item in rooms
-  that lets you use the MSN Chat control to join the room.  Make sure
-  you read the section below about it.
+v4.2 - What's new:
+- Changed alot of the variables to use a vincula.ini file instead.
+- Fixed the "Error 708: Input Flooding" bug.
+- Added the /find command, which allows you to use Find a Friend.  The
+  only problem is that you must use the friend's whole nickname, and it
+  doesn't support wildcards (like * and ?).
+- Changed the popups so that you'll always see Vincula's main menu, in
+  addition to the window specific menu (Nickname list, Room, etc.).
+- Changed the way Vincula was making the Recent Rooms and the Select
+  Passport popups so that it's alot faster.
+- Fixed a problem with the Edit Passport Info dialog where it wouldn't
+  always edit the info properly. I think this only affected Vincula
+  after I changed it to use a .ini file.
+- Added a "Possible Match" box to the /access dialog. It shows the
+  first person in the room that matches the selected Access Mask. (Only
+  if it actually finds a match.)
+- Vincula will now automatically check for a new version and a new
+  MSN Chat CLSID every time you open it.  It can't autoupdate itself
+  yet, but it will give you a direct download URL for the new version.
+  It will ask you before it applies any new CLSIDs.
+- /joins will now encode room names if it thinks it needs to, so you
+  can do:
+  /joins My†Room
+  and it will join it properly. It's not perfect though, so it might
+  give a wrong room name now and then.
+- Changed the "Nickname is in Unicode format" checkbox in the Enter
+  Name dialog to "Leave Nick as-is". The nickname's format is now
+  autodetected unless the box is checked.
+- Added the same "Leave Nick as-is" checkbox to the Add and Edit
+  Passport Info dialogs.
+- Added an option in /msn.setup (on the Extra tab) to disable the
+  hidden /who that Vincula does when it joins a room.
+- When you join from /msn.roomlist or from the Join using MSN Client
+  popup, there is a new option in the dialog that lets you join the
+  room on the real MSN Chat website, in Internet Explorer.
+- Fixed a bug that was making Vincula not show when people were Away
+  when you joined a room.
+- Fixed a bug when you had "Show users' colors" turned on, and the
+  first thing someone said was a number.
+- Made the Passport updater log out so that you don't get an error next
+  time you try to update the passport.
+- Added a item to the "Room URL" popup menu that lets you join the room
+  through the real MSN website in Internet Explorer.
+- Fixed a bug where the first time you would load Vincula and it reads
+  the font to use from the registry, it wouldn't replace " " with "\b".
+- Fixed a bug that would sometimes make it look like the wrong person
+  is speaking when you have the decoder turned on.
+  Related bug: If someone's nickname is a number (such as the nickname
+  3), it will show the mode prefix (the ., @, or +) for that numbered
+  nickname on the list. I couldn't figure out a way to fix it because
+  it's an mIRC related thing.
+
 
 For old What's New lists, see the end of this file.
 
@@ -305,6 +338,12 @@ MSN Chat CLSID:
     or you can change it by editing it right here.  You can always find
     the current CLSID at: http://exonyte.dyndns.org/msn.php
     The default button sets the CLSID to MSN Chat Control 4.2's CLSID.
+Don't do /who when you join a room:
+    Normally Vincula will do a hidden /who when you join a room. This
+    is done so that mIRC's $address and $ial and other identifiers that
+    use the Internal Address List will work properly.  The only
+    drawback is that it may slow down Vincula's join time when you join
+    a large room.  You can turn it by checking this box.
 Show user's profile type upon entry:
     When someone enters the room, Vincula will check what type of
     profile they have and tell you right below the Join message.
@@ -403,6 +442,12 @@ the bans and such.
 Will disconnect from the server, and reconnect to the same room, using
 whatever nickname you specify.
 
+/find <nickname>
+----------------
+Will give you a list of the rooms that <nickname> is in, and allows you
+to easily join one.  This is almost like the Find a Friend on the MSN
+Chat website, except that you must give the exact nickname.
+
 /hop
 ----
 Will leave and rejoin the current room without reconnecting, and will
@@ -456,16 +501,18 @@ since you loaded this script.
 
 Identifiers:
 
-$msn.decode(text)
------------------
+$msn.decode(text) / $msn.ifdecode(text)
+---------------------------------------
 Returns text, as passed through the script's Unicode decoder. Most
-useful for Unicode nicknames.
+useful for Unicode nicknames. If you use $msn.ifdecode(text), then it
+will only decode it if the decoder is turned on.
 
-$msn.encode(text)
------------------
+$msn.encode(text) / $msn.ifencode(text)
+---------------------------------------
 Returns text, as passed through the script's Unicode encoder. Most
 useful for using extended ascii characters (Alt codes) in speaking and
-in nicknames.
+in nicknames. If you use $msn.ifencode(text), then it will only encode
+if the encoder is turned on.
 
 $msn.hostkey / $msn.hostkey(%#room)
 -----------------------------------
@@ -494,13 +541,16 @@ Gives you information for any passport you have stored in Vincula Neo.
 "item" is one of the following items:
 
 email    - E-mail address
-passwd   - Password
-cookie   - MSNREGCookie
+passwd   - Password (if given)
+cookie   - MSNREGCookie (if given)
 ticket   - PassportTicket
 profile  - PassportProfile
 showprof - Profile type number
 updated  - The $ctime when the passport was last updated.
            Use $asctime($msn.ppdata(name,updated)) for a readable date.
+nick     - The Nickname entered for this passport (if any)
+lvnick   - Tells Vincula whether to $msn.encode on Nickname, or just
+           use it as-is.
 
 $msn.roompass / $msn.roompass(%#room)
 -------------------------------------
@@ -534,13 +584,14 @@ A few comments for MSN scripters:
 
 The socket names are:
 
-MSN Server:
+for the MSN Server:
 msn.server. $+ $cid
 or
 msn.server.*
 
-mIRC:
+for mIRC:
 msn.mirc. $+ $cid
+or
 msn.mirc.*
 
 To get the mIRC room name for a specific socket, use:
@@ -552,8 +603,8 @@ $msn.get($sockname,fullroom)
 You can also use $msn.get($cid,room) or $msn.get($cid,fullroom)
 
 If you want to sockwrite a command straight to MSN, make sure you use
-the $msn.get($cid,fullroom) otherwise if you're in a long room, it
-won't work.
+the $msn.get($cid,fullroom) otherwise if you're in a long room (more
+than 60 characters), it won't work.
 
 Unlike most scripts, this script converts WHISPER commands into
 standard IRC PRIVMSG commands, and vice-versa. It also converts NOTICE
@@ -579,14 +630,15 @@ E-mail: exonyte1@exonyte.dyndns.org
 
 Official Website: http://exonyte.dyndns.org
 
-I'd like to thank my testers: Trad, Moto, Atti, and Neo. To anyone else
-that I sent a copy of this thing to and forgot about: Sorry! Let me
-know and I'll put your name in here too!
+I'd like to thank my original testers: Trad, Moto, Atti, and Neo. To
+anyone else that I sent a copy of this thing to early on and forgot
+about: Sorry! Let me know and I'll put your name in here too!
 
 Why Vincula?
 Vincula is a plural form of Vinculum, which means "A bond or tie."
 Since the nature of this script is multiple "ties" to MSN Chat, I think
-the name fits it well.
+the name fits it well.  Vincula also means something like "it ties" in
+Spanish.
 
 If you would like to include this MSN connection addon with your own
 script:
@@ -617,6 +669,26 @@ Available at: http://www.mircscripts.org/comments.php?id=1439
 -----------------------------------------------------------------------
 
 Old What's New lists:
+
+v4.1 - What's new:
+- I accidentally left out a * which ended up breaking the "Edit" button
+  on the Passports tab in /msn.setup, it's fixed now.
+- Now the Auto Passport updater (/msn.getpp and the Refresh button in
+  /msn.setup) will tell you if it failed and why, instead of just
+  sitting there leaving you wondering.
+- Expanded the /access dialog so that I could fit the "Clear Denies"
+  button that I forgot to put in last version.
+- Cosmetic change in the on OPEN that handles incoming whispers.  Now
+  it will indent what the person said like it should.
+- The Passport updaters won't try to update now when you don't have a
+  passport loaded. Hi Rift! :P
+- Instead of not using $msn.roompass anymore I just changed the way it
+  works. Now it will give you either the ownerkey or the hostkey,
+  depending on if it knows one or the other.  You can still use
+  $msn.ownerkey or $msn.hostkey to get a specific key if you need them.
+- I forgot to mention it in 4.0, but there's a new popup item in rooms
+  that lets you use the MSN Chat control to join the room.  Make sure
+  you read the section below about it.
 
 v4.0 - What's new:
 - Rewrite the entire connection process, depending on your connection
@@ -722,4 +794,4 @@ v3.5 - What's new:
 v3.4 - Initial release
 
 -----------------------------------------------------------------------
-Copyright © 2002 eXonyte                       Last Updated: 08/25/2002
+Copyright © 2002 eXonyte                       Last Updated: 09/23/2002
