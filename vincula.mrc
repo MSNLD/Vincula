@@ -1,4 +1,4 @@
-;--- Vincula Neo (v4.3)
+;--- Vincula Neo (v4.4)
 ;--- http://exonyte.dyndns.org
 
 ;--- Aliases
@@ -376,7 +376,7 @@ alias msn.enchash {
   }
 }
 
-alias msn.vver return 4.3
+alias msn.vver return 4.4
 
 alias msn.getpp {
   if ($timer(.msn.agpp) >= 1) {
@@ -423,40 +423,60 @@ alias msn.update {
 alias msn.dogetpp {
   %msnpp.lotime = $ticks
   %msnpp.loupdate = $1
+  %msnpp.lourl = https://loginnet.passport.com/ppsecure/post.srf?id=2260&ru=http%3A%2F%2Fchat%2Emsn%2Ecom%2Fchatroom%2Emsnw%3Frm%3DeXonyte&login= $+ $replace($2,@,$chr(37) $+ 40) $+ &passwd= $+ $3
   echo $color(info2) -atq * Updating the " $+ %msnpp.loupdate $+ " passport, please wait...
   window -ph @VinculaPPU
   var %s $msn.ndll(attach,$window(@VinculaPPU).hwnd)
   %s = $msn.ndll(handler,msn.hnd.getpp)
-  %s = $msn.ndll(navigate,https://login.passport.com/ppsecure/post.srf?id=2260&ru=http://chat.msn.com/chatroom.msnw%3frm%3dTheLobby&login= $+ $replace($2,@,$chr(37) $+ 40) $+ &passwd= $+ $3)
+  %s = $msn.ndll(navigate,%msnpp.lourl)
 }
 
 alias msn.hnd.getpp {
   if (navigate_begin == $2) {
-    if (http://chat.msn.com*chatroom.msnw* iswm $3-) {
+    if (http://*.*.???/*t=*p=* iswm $3-) {
       .timer 1 0 msn.urlpp $1 $3
       return S_CANCEL
     }
-    elseif (http://*login*.passport.com*ec=e?* iswm $3-) {
+    elseif (http://*.passport.???*ec=e?* iswm $3-) {
       .timer 1 0 msn.urlerr $1 $3
       return S_CANCEL
     }
-    elseif (http://*login*.passport.com*switchuser.srf* iswm $3-) {
+    elseif (http://*.passport.???*switchuser.srf* iswm $3-) {
       .timer 1 0 msn.urllo $1
       return S_CANCEL
     }
-    elseif (http://chat.msn.com/default.asp == $3-) {
+    elseif (http://*.passport.???/CookiesDisabled.srf iswm $3-) {
+      .timer 1 0 msn.urlnocookie $1
+      return S_CANCEL
+    }
+    elseif (http://chat.msn.com/default.asp iswm $3-) {
       .timer 1 0 window -c @VinculaPPU
       return S_CANCEL
+    }
+    elseif (http://login.passport.*/*login.srf iswm $3-) {
+      .timer -m 1 500 msn.urlli
+    }
+  }
+  elseif ($2 == document_complete) {
+    if (http://login.passport.*/*login.srf iswm $3-) {
+      .timer 1 0 msn.urlli
     }
   }
   return S_OK
 }
 
+alias msn.urlnocookie {
+  var %s $msn.ndll(select,$1)
+  %s = $msn.ndll(navigate,http://login.passport.com/login.srf)
+}
+
+alias msn.urlli {
+  var %s $msn.ndll(select,$1)
+  %s = $msn.ndll(navigate,%msnpp.lourl)
+}
+
 alias msn.urlpp {
   var %s, %pt $right($wildtok($2,t=*,1,38),-2), %pp $right($wildtok($2,p=*,1,38),-2), %pu %msnpp.loupdate
-  %s = $msn.ndll(select,$1)
-  %s = $msn.ndll(navigate,http://login.passport.com/logout.srf?id=2260)
-
   writeini $+(",$scriptdir,vpassport.dat") %msnpp.loupdate ticket %pt
   writeini $+(",$scriptdir,vpassport.dat") %msnpp.loupdate profile %pp
   writeini $+(",$scriptdir,vpassport.dat") %msnpp.loupdate updated $ctime
@@ -465,8 +485,11 @@ alias msn.urlpp {
     %msnpp.profile = %pp
   }
   echo $color(info2) -at * Passport info for " $+ %msnpp.loupdate $+ " is now updated ( $+ $calc(($ticks - %msnpp.lotime) / 1000) seconds)
+  %s = $msn.ndll(select,$1)
+  %s = $msn.ndll(navigate,http://login.passport.com/logout.srf?id=2260)
   unset %msnpp.loupdate
   unset %msnpp.lotime
+  unset %msnpp.lourl
   %msnc.doconnect
 }
 
@@ -490,7 +513,7 @@ alias msn.urlerr {
 
 alias msn.urllo {
   var %r, %s $msn.ndll(select,$1)
-  %s = $msn.ndll(navigate,http://login.passport.com/logout.srf?id=2260)
+  %s = $msn.ndll(navigate,http://login.passport.com/logout.srf?id=486)
 }
 
 alias msn.mgetpp {
@@ -1995,7 +2018,7 @@ menu channel {
 ;--- Setup dialog
 alias msn.setup dialog -m msn.setup. $+ $cid msn.setup
 
-alias        return $+($chr(40),$decode(NC4z,m),$chr(41),$chr(44))
+alias        return $+($chr(40),$decode(NC40,m),$chr(41),$chr(44))
 
 dialog msn.setup {
   title "Vincula Neo - Setup"
@@ -2112,7 +2135,7 @@ dialog msn.setup {
   box "If you've installed or removed fonts, click this button", 159, 5 84 185 25, tab 1004
   button "Rebuild Font Cache", 160, 10 93 175 12, tab 1004
 
-  text "Vincula Neo 4.3 by eXonyte - 10/15/2002", 161, 1 125 107 8, right
+  text "Vincula Neo 4.4 by eXonyte - 10/28/2002", 161, 1 125 107 8, right
   link "http://exonyte.dyndns.org", 162, 42 132 67 9
 
   button "OK", 100, 111 127 40 12, ok
@@ -3030,10 +3053,8 @@ raw 913:*: {
     did -b %x 1,12,13,14
   }
   else {
-    if ($window($msn.get($cid,room))) {
-      echo $color(info2) -t $msn.get($cid,room) * Access was denied to $2
-    }
-    else
+    if ($window($msn.get($cid,room))) echo $color(info2) -t $msn.get($cid,room) * Access was denied to $2
+    else echo $color(info2) -ts * Access was denied to $2
   }
   haltdef
 }

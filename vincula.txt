@@ -1,6 +1,6 @@
-Vincula Neo (v4.3) - eXonyte's MSN Chat connection script
+Vincula Neo (v4.4) - eXonyte's MSN Chat connection script
 
-Date: Tuesday, October 15, 2002
+Date: Monday, October 28, 2002
 
 -----------------------------------------------------------------------
 
@@ -17,63 +17,13 @@ date to correct this, or the display events can be modified at will.
 
 -----------------------------------------------------------------------
 
-v4.3 - What's new:
-- Completely redesigned /msn.setup dialog
-  - Added a font preview to the Fonts tab
-  - Added "Add key" editbox+buttons to /msn.setup (Thanks OZZY_10™)
-  - Added "Script" box to font selection
-  - Added hide joins/parts/kicks options
-  - Added "Use default MSN Chat sounds" button to the sounds tab
-  - Added "Rebuild fonts cache" button
-- Made new commands for editing your passport info:
-    /msn.pticket [-t] ticket
-    /msn.pprofile [-t] profile
-    /msn.pcookie [-t] cookie
-  See them below in the Commands List.
-- Made Vincula just slightly faster at connecting, because it doesn't
-  write .html files to connect anymore. It just sends what it needs
-  directly to nHTMLn now.
-- Removed the msn.writehtml command because it doesn't need to write
-  a .html file anymore.
-- Vincula now shows any /access changes that you do in the room they
-  are changed in.  (An option to turn this feature on or off is coming
-  in v4.4.)
-- When trying to join a room using MSN Chat with a stored passport,
-  Vincula will now tell you why there are no passports listed.
-- Finally Vincula will save the "Random Color" option correctly! I'm
-  sorry for this bug lingering for so long, but it's squashed now.
-- Added a popup and a command to reset the lookup server connections.
-  Sometimes you'll need to do this if it starts giving you strange
-  errors:  /msn.relookcon
-- Made the script use dynamic names for the nHTMLn and registry dlls.
-  This doesn't mean all that much to you, but it will be useful later.
-- Fixed some bugs with the room making dialog, especially the one when
-  you would make a long room and it wouldn't store the password
-  properly.
-- Vincula will no longer let you try to join a room when the name is
-  over 200 characters long (MSN's limit on room name length).
-- Vincula now reopens @debug window on startup when /msndebug is
-  turned on.
-- When refreshing your passport, Vincula will now ask for the "password
-  for passport" instead of asking for the "passport for passport."
-- When joining room that doesn't exist, and making it through the Room
-  Creation dialog, Vincula will now only ask you for your name once.
-- Added a new Passport Update command:
-    /msn.update [-p] [passport] [password]
-  The old command /msn.getpp will still work.
-- Added what I was told was MSNKit's passport update command:
-    /msnchat.update
-  Which will do the same thing as /msn.getpp
-- When you type a room name in the Room Creation dialog, and then click
-  the "Use Hex" box, it will automatically convert it to a hex room
-  name and back.
-- When a whisper opens and you have the decoder turned on, it will now
-  say "Encoded nickname" instead of "Decoded nickname".
-- When you type /find by itself it will now open the Find a Friend
-  dialog, so that you can search for someone.
-- Added a popup for Find a Friend.
-- Fixed whispers so that it shouldn't keep whisper scripts (like
-  whisper kicks) from working.
+v4.4 - What's new:
+- Passport updater should be fixed now.  If the Windows XP Passport
+  signin box appears, just click Cancel and you'll be fine.
+- Fixed a bug when joining a room and you're banned.
+
+v4.3.1 - What's new:
+- Various test releases to fix the auto passport updater.
 
 For old What's New lists, see the end of this file.
 
@@ -180,7 +130,8 @@ Updating Passport info:
 To update your current passport info, just type /msn.getpp in any
 window, or choose "Update Passport information (auto)..." from a popup
 menu.  You can also go to the Passports tab in /msn.setup, select a
-passport, and hit Refresh.
+passport, and hit Refresh.  If the Windows XP Passport signin dialog
+opens, just click Cancel and Vincula should still be able to update.
 
 If for some reason you need to update your passport info manually,
 or if you want to autoupdate the CLSID, then do as follows:
@@ -715,6 +666,64 @@ Available at: http://www.mircscripts.org/comments.php?id=1439
 
 Old What's New lists:
 
+v4.3 - What's new:
+- Completely redesigned /msn.setup dialog
+  - Added a font preview to the Fonts tab
+  - Added "Add key" editbox+buttons to /msn.setup (Thanks OZZY_10™)
+  - Added "Script" box to font selection
+  - Added hide joins/parts/kicks options
+  - Added "Use default MSN Chat sounds" button to the sounds tab
+  - Added "Rebuild fonts cache" button
+- Made new commands for editing your passport info:
+    /msn.pticket [-t] ticket
+    /msn.pprofile [-t] profile
+    /msn.pcookie [-t] cookie
+  See them below in the Commands List.
+- Made Vincula just slightly faster at connecting, because it doesn't
+  write .html files to connect anymore. It just sends what it needs
+  directly to nHTMLn now.
+- Removed the msn.writehtml command because it doesn't need to write
+  a .html file anymore.
+- Vincula now shows any /access changes that you do in the room they
+  are changed in.  (An option to turn this feature on or off is coming
+  in v4.4.)
+- When trying to join a room using MSN Chat with a stored passport,
+  Vincula will now tell you why there are no passports listed.
+- Finally Vincula will save the "Random Color" option correctly! I'm
+  sorry for this bug lingering for so long, but it's squashed now.
+- Added a popup and a command to reset the lookup server connections.
+  Sometimes you'll need to do this if it starts giving you strange
+  errors:  /msn.relookcon
+- Made the script use dynamic names for the nHTMLn and registry dlls.
+  This doesn't mean all that much to you, but it will be useful later.
+- Fixed some bugs with the room making dialog, especially the one when
+  you would make a long room and it wouldn't store the password
+  properly.
+- Vincula will no longer let you try to join a room when the name is
+  over 200 characters long (MSN's limit on room name length).
+- Vincula now reopens @debug window on startup when /msndebug is
+  turned on.
+- When refreshing your passport, Vincula will now ask for the "password
+  for passport" instead of asking for the "passport for passport."
+- When joining room that doesn't exist, and making it through the Room
+  Creation dialog, Vincula will now only ask you for your name once.
+- Added a new Passport Update command:
+    /msn.update [-p] [passport] [password]
+  The old command /msn.getpp will still work.
+- Added what I was told was MSNKit's passport update command:
+    /msnchat.update
+  Which will do the same thing as /msn.getpp
+- When you type a room name in the Room Creation dialog, and then click
+  the "Use Hex" box, it will automatically convert it to a hex room
+  name and back.
+- When a whisper opens and you have the decoder turned on, it will now
+  say "Encoded nickname" instead of "Decoded nickname".
+- When you type /find by itself it will now open the Find a Friend
+  dialog, so that you can search for someone.
+- Added a popup for Find a Friend.
+- Fixed whispers so that it shouldn't keep whisper scripts (like
+  whisper kicks) from working.
+
 v4.2 - What's new:
 - Changed alot of the variables to use a vincula.ini file instead.
 - Fixed the "Error 708: Input Flooding" bug.
@@ -891,4 +900,4 @@ v3.5 - What's new:
 v3.4 - Initial release
 
 -----------------------------------------------------------------------
-Copyright © 2002 eXonyte                       Last Updated: 10/15/2002
+Copyright © 2002 eXonyte                       Last Updated: 10/19/2002
