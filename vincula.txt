@@ -1,11 +1,14 @@
-Vincula Neo (v4.0) - eXonyte's New MSN Chat connection script
+Vincula Neo (v4.1) - eXonyte's New MSN Chat connection script
 
-Date: August 23, 2002
+Date: August 25, 2002
 
 -----------------------------------------------------------------------
 
 Requires mIRC 6.x, only tested in 6.01 and 6.03. Should work in 6.02.
 WILL NOT work at all in mIRC 5.91 or lower.
+
+If you want to know things like the socket names, search in this file
+for "msn scripters" (without the quotes) and it'll give you that info.
 
 If you are using a script or addon that changes the way mIRC displays
 any events, especially a theme system, then Vincula's decoder will
@@ -14,50 +17,26 @@ date to correct this, or the display events can be modified at will.
 
 -----------------------------------------------------------------------
 
-v4.0 - What's new:
-- Rewrite the entire connection process, depending on your connection
-  and the speed of your computer, it may be over twice as fast at
-  joining rooms!  It should also be alot more reliable in connecting,
-  so those of you that were having problems before should try it out
-  and let me know.
-- You can now join Community rooms using your Passport.
-- The Room Creation dialog now allows making rooms in other countries
-- The Room Creation dialog also can now be opened anytime using the new
-  /msn.makeroom command.
-- In the Room Creation dialog, you can use a hex room name to make the
-  room. No, this does not let you magically put the room at the top of
-  the room list!
-- When you join a room with a long name (over 90 characters), Vincula
-  will now strip the room name down to the right side instead of the
-  left side.  Now telling which !!!!!!! rooms you're in will be easier
-  to do, hehe.
-- When someone with a too-long name enters the room, Vincula will
-  refresh the nickname list so that you can actually kick them and such
-  from the right-click popup menus.
-- Vincula now can now store multiple Passports, and easily switch
-  between them.
-- Rewrote the Passport Autoupdater again.  Now it will only update the
-  PassportTicket and PassportProfile, but it doesn't matter because
-  Vincula Neo doesn't need the MSNREGCookie to connect anymore.  It is
-  also very fast, on my DSL I update in less than 1 second sometimes!
-- Fixed Erroneous Nickname Disconnect bug.
-- Vincula now stores both owner and host keys for rooms, see the new
-  $msn.ownerkey and $msn.hostkey identifiers below.
-- Added buttons to /msn.setup to clear the stored owner/host key lists.
-- Added sound support. Now you can make Vincula sound like MSN Chat.
-- Added a room hop: /hop
-- Added clone hop: /clone nickname
-- Added /msn.create command for quick/scripted room creation.
-- Added Recent rooms list (stores the last 10 rooms and the way you
-  joined them, such as Normal, Guest, etc.)
-- Added Auto-rejoin when kicked option.
-- Added Disable Whispers option (just like MSN's).
-- Got rid of the old COM Registry reading code and now uses a registry
-  reading DLL instead which is slightly faster and more compatible. If
-  Vincula gave you COM errors before, it shouldn't anymore.
-- Bunches of other little tweaks, tiddles, and tamperings that I've
-  forgotten about because I was too lazy to take notes.
-  
+v4.1 - What's new:
+- I accidentally left out a * which ended up breaking the "Edit" button
+  on the Passports tab in /msn.setup, it's fixed now.
+- Now the Auto Passport updater (/msn.getpp and the Refresh button in
+  /msn.setup) will tell you if it failed and why, instead of just
+  sitting there leaving you wondering.
+- Expanded the /access dialog so that I could fit the "Clear Denies"
+  button that I forgot to put in last version.
+- Cosmetic change in the on OPEN that handles incoming whispers.  Now
+  it will indent what the person said like it should.
+- The Passport updaters won't try to update now when you don't have a
+  passport loaded. Hi Rift! :P
+- Instead of not using $msn.roompass anymore I just changed the way it
+  works. Now it will give you either the ownerkey or the hostkey,
+  depending on if it knows one or the other.  You can still use
+  $msn.ownerkey or $msn.hostkey to get a specific key if you need them.
+- I forgot to mention it in 4.0, but there's a new popup item in rooms
+  that lets you use the MSN Chat control to join the room.  Make sure
+  you read the section below about it.
+
 For old What's New lists, see the end of this file.
 
 -----------------------------------------------------------------------
@@ -235,6 +214,25 @@ Joins a room that has spaces in the name.
 -k allows you to use a key, like this:
 /joins -k somekey My Chat Room
 That would join the room "My Chat Room" using the key "somekey".
+
+-----------------------------------------------------------------------
+
+Joining a room using the MSN Chat Control:
+
+This is pretty straight-forward.  When you're in a room, just right-
+click and choose the "Join the room using the MSN Chat Client" option.
+It will open a dialog, and you should choose one of the "On MSN"
+options.
+
+The only problem here is that to use a passport with this, you must
+have the MSNREGCookie for the passport.  Follow the manual passport
+update instructions above, or edit a passport and put in the proper
+MSNREGCookie for it.  Then you can just select a passport, and click
+OK.
+
+If you would prefer to join "On MSN as a Guest" then you
+don't need to worry about a passport.  Just choose the option, click
+OK, enter a nickname to use, and you're good to go.
 
 -----------------------------------------------------------------------
 
@@ -483,7 +481,6 @@ $msn.ownerkey / $msn.ownerkey(%#room)
 -------------------------------------
 Returns the stored room owner key for the active channel (if used in
 the editbox without %#room), or the owner key for for %#room.
-This identifier replaces $msn.roompass
 
 $msn.pass / $msn.pass(N)
 ------------------------
@@ -505,6 +502,13 @@ showprof - Profile type number
 updated  - The $ctime when the passport was last updated.
            Use $asctime($msn.ppdata(name,updated)) for a readable date.
 
+$msn.roompass / $msn.roompass(%#room)
+-------------------------------------
+Returns the stored room owner key for the active channel (if used in
+the editbox without %#room), or the owner key for for %#room.  If it
+doesn't know the owner key, it will return the host key instead. If it
+doesn't know the host key, it will return nothing.
+
 $msn.tohex(text)
 ----------------
 Returns text in hexadecimal format.
@@ -524,26 +528,20 @@ $joinurl(url)
 Extracts the room hex from a URL, even if the URL does not have the hex
 for the room in it.
 
-$msn.roompass / $msn.roompass(%#room)
--------------------------------------
-I don't recommend you use this anymore, see $msn.ownerkey above.  This
-identifier still works however, to maintain compatibility with older
-scripts.
-Returns the stored room owner key for the active channel (if used in
-the editbox without %#room), or the owner key for for %#room.
-
 -----------------------------------------------------------------------
 
 A few comments for MSN scripters:
 
 The socket names are:
 
-msn.server. $+ $cid <-- MSN Server
+MSN Server:
+msn.server. $+ $cid
+or
+msn.server.*
 
-msn.mirc. $+ $cid   <-- mIRC
-
-If you would prefer to send something to every socket, then just use
-msn.server.* or msn.mirc.* or if you're really daring, msn.*
+mIRC:
+msn.mirc. $+ $cid
+msn.mirc.*
 
 To get the mIRC room name for a specific socket, use:
 $msn.get($sockname,room)
@@ -551,7 +549,11 @@ $msn.get($sockname,room)
 To get the MSN room name for a specific socket, use:
 $msn.get($sockname,fullroom)
 
-You can also use $msn.get($cid,room)
+You can also use $msn.get($cid,room) or $msn.get($cid,fullroom)
+
+If you want to sockwrite a command straight to MSN, make sure you use
+the $msn.get($cid,fullroom) otherwise if you're in a long room, it
+won't work.
 
 Unlike most scripts, this script converts WHISPER commands into
 standard IRC PRIVMSG commands, and vice-versa. It also converts NOTICE
@@ -616,6 +618,50 @@ Available at: http://www.mircscripts.org/comments.php?id=1439
 
 Old What's New lists:
 
+v4.0 - What's new:
+- Rewrite the entire connection process, depending on your connection
+  and the speed of your computer, it may be over twice as fast at
+  joining rooms!  It should also be alot more reliable in connecting,
+  so those of you that were having problems before should try it out
+  and let me know.
+- You can now join Community rooms using your Passport.
+- The Room Creation dialog now allows making rooms in other countries
+- The Room Creation dialog also can now be opened anytime using the new
+  /msn.makeroom command.
+- In the Room Creation dialog, you can use a hex room name to make the
+  room. No, this does not let you magically put the room at the top of
+  the room list!
+- When you join a room with a long name (over 90 characters), Vincula
+  will now strip the room name down to the right side instead of the
+  left side.  Now telling which !!!!!!! rooms you're in will be easier
+  to do, hehe.
+- When someone with a too-long name enters the room, Vincula will
+  refresh the nickname list so that you can actually kick them and such
+  from the right-click popup menus.
+- Vincula now can now store multiple Passports, and easily switch
+  between them.
+- Rewrote the Passport Autoupdater again.  Now it will only update the
+  PassportTicket and PassportProfile, but it doesn't matter because
+  Vincula Neo doesn't need the MSNREGCookie to connect anymore.  It is
+  also very fast, on my DSL I update in less than 1 second sometimes!
+- Fixed Erroneous Nickname Disconnect bug.
+- Vincula now stores both owner and host keys for rooms, see the new
+  $msn.ownerkey and $msn.hostkey identifiers below.
+- Added buttons to /msn.setup to clear the stored owner/host key lists.
+- Added sound support. Now you can make Vincula sound like MSN Chat.
+- Added a room hop: /hop
+- Added clone hop: /clone nickname
+- Added /msn.create command for quick/scripted room creation.
+- Added Recent rooms list (stores the last 10 rooms and the way you
+  joined them, such as Normal, Guest, etc.)
+- Added Auto-rejoin when kicked option.
+- Added Disable Whispers option (just like MSN's).
+- Got rid of the old COM Registry reading code and now uses a registry
+  reading DLL instead which is slightly faster and more compatible. If
+  Vincula gave you COM errors before, it shouldn't anymore.
+- Bunches of other little tweaks, tiddles, and tamperings that I've
+  forgotten about because I was too lazy to take notes.
+
 v3.6 - What's new:
 - nHTMLn had an unofficial update at http://www.mircscripts.org that
   fixes it for mIRC 6.x.
@@ -676,4 +722,4 @@ v3.5 - What's new:
 v3.4 - Initial release
 
 -----------------------------------------------------------------------
-Copyright © 2002 eXonyte                       Last Updated: 08/23/2002
+Copyright © 2002 eXonyte                       Last Updated: 08/25/2002

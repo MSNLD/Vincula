@@ -1,4 +1,4 @@
-;--- Vincula Neo (v4.0)
+;--- Vincula Neo (v4.1)
 ;--- http://exonyte.dyndns.org
 
 ;--- Aliases
@@ -165,6 +165,11 @@ alias clone {
   else sockwrite -tn msn.look.comm FINDS %x
 }
 
+alias join {
+    if ($server == $null) msn $1-
+    else join $1-
+}
+
 alias joinhex {
   if (($1 == -g) || ($1 == -c) || ($1 == -cg) || ($1 == -gc)) msn $1 $msn.unhex($2) $3
   else msn $msn.unhex($1) $2
@@ -202,7 +207,7 @@ alias joinurl {
 
 alias hop {
   if ($window($msn.get($cid,room))) sockwrite -tn msn.server. $+ $cid PART $msn.get($cid,fullroom)
-  if (%msnx.usepass) var %p = $msn.ownerkey($msn.get($cid,room))
+  if (%msnx.usepass) var %p = $msn.roompass($msn.get($cid,room))
   sockwrite -tn msn.server. $+ $cid JOIN $msn.get($cid,fullroom) %p
 }
 
@@ -312,6 +317,10 @@ alias msn.getpp {
     echo $color(info2) -at * Please wait until the Passport Updater is finished before trying to update again
     return
   }
+  if (%msnx.selpp == $null) {
+    echo $color(info2) -at * You must have a passport selected in order to update it!
+    return
+  }
   var %p
   if (%msnx.passwd == $null) %p = $$input(Please enter the password for the %msnx.email passport:,130,Enter Password)
   else %p = %msnx.passwd
@@ -330,9 +339,19 @@ alias msn.dogetpp {
 }
 
 alias msn.hnd.getpp {
-  if (navigate_begin http://chat.msn.com*chatroom.msnw* iswm $2-) {
-    .timer 1 0 msn.urlpp $1 $3
-    return S_CANCEL
+  if (navigate_begin == $2) {
+    if (http://chat.msn.com*chatroom.msnw* iswm $3-) {
+      .timer 1 0 msn.urlpp $1 $3
+      return S_CANCEL
+    }
+    elseif (http://*login*.passport.com*ec=e?* iswm $3-) {
+      .timer 1 0 msn.urlerr $1 $3
+      return S_CANCEL
+    }
+  }
+  elseif (navigate_begin == $2) {
+    window @debug
+    echo -ti2 @debug Nav'ing to: $3-
   }
   return S_OK
 }
@@ -356,9 +375,31 @@ alias msn.urlpp {
   %msnc.doconnect
 }
 
+alias msn.urlerr {
+  var %r, %s $msn.ndll(select,$1)
+  %s = $msn.ndll(navigate,about:blank)
+  window -c @VinculaPPU
+  if (http://*ec=e5a* iswm $2) %r = you gave the wrong password
+  elseif (http://*ec=e5b* iswm $2) %r = the e-mail address is not registered as a passport
+  elseif (http://*ec=e5d* iswm $2) %r = the e-mail address is invalid
+  elseif (http://*ec=e5e* iswm $2) %r = it's missing part of the e-mail
+  elseif (http://*ec=e1* iswm $2) %r = you didn't give the whole e-mail or password
+  elseif (http://*ec=e2* iswm $2) %r = you didn't give the e-mail address for passport
+  elseif (http://*ec=e3* iswm $2) %r = you didn't give the password for the passport
+  else %r = of a reason unknown to Vincula
+  echo $color(info2) -at * Passport update for " $+ %msnpass.loupdate $+ " failed because %r ( $+ $calc(($ticks - %msnpass.lotime) / 1000) seconds)
+  unset %msnpass.loupdate
+  unset %msnpass.lotime
+  unset %msnc.*
+}
+
 alias msn.mgetpp {
   if ($timer(.msn.agpp) >= 1) {
     echo $color(info2) -at * Please wait until the Passport Updater is finished before trying to update again
+    return
+  }
+  if (%msnx.selpp == $null) {
+    echo $color(info2) -at * You must have a passport selected in order to update it!
     return
   }
   %msnpass.loupdate = %msnx.selpp
@@ -573,8 +614,14 @@ alias msn.unhex {
 }
 
 alias msn.roompass {
-  if ($1) return %msnp.qkey. [ $+ [ $right($1,-2) ] ]
-  else return %msnp.qkey. [ $+ [ $right($chan,-2) ] ]
+  if ($1) {
+    if (%msnp.qkey. [ $+ [ $right($1,-2) ] ] != $null) return %msnp.qkey. [ $+ [ $right($1,-2) ] ]
+    return %msnp.okey. [ $+ [ $right($1,-2) ] ]
+  }
+  else {
+    if (%msnp.qkey. [ $+ [ $right($chan,-2) ] ] != $null) return %msnp.qkey. [ $+ [ $right($chan,-2) ] ]
+    return %msnp.okey. [ $+ [ $right($chan,-2) ] ]
+  }
 }
 
 alias msn.ownerkey {
@@ -704,7 +751,7 @@ on *:START: {
     }
     if (!%msnc.nostart) unset %msn*
     elseif ($version != 6.03) echo $color(info2) -ta * Vincula Neo is designed for mIRC v6.03.  It should work on your version (mIRC $version $+ ) but it is untested and may act strange.
-    echo $color(info2) -ta * Welcome to Vincula Neo (v4.0)
+    echo $color(info2) -ta * Welcome to Vincula Neo (v4.1)
     echo $color(info2) -ta * Please read the instructions in the vincula.txt file!
     echo $color(info2) -ta * Now performing initializations, please wait...
     %msnc.startup = $true
@@ -1244,7 +1291,7 @@ on *:SOCKREAD:msn.server.*: {
 
     if (AUTH GateKeeper* S :GKSSP* iswm $1-) sockwrite -tn msn.client.rm $1-
     elseif (AUTH GateKeeper*S :OK iswm $1-) {
-      if (%msnx.usepass) var %pass $msn.ownerkey($msn.get($sockname,room))
+      if (%msnx.usepass) var %pass $msn.roompass($msn.get($sockname,room))
       if ((%msnpass.cookie) && (!$msn.get($sockname,nick))) {
         sockwrite -tn $sockname AUTH GateKeeperPassport S : $+ $msn.authkey $lf PROP $ MSNREGCOOKIE : $+ %msnpass.cookie $lf PROP $ MSNPROFILE : $+ %msnx.showprof $lf JOIN $msn.get($sockname,fullroom) %pass
       }
@@ -1252,12 +1299,12 @@ on *:SOCKREAD:msn.server.*: {
         sockwrite -tn $sockname AUTH GateKeeperPassport S : $+ $msn.authkey $lf NICK $msn.get($sockname,nick) $lf PROP $ MSNREGCOOKIE : $+ %msnpass.cookie $lf PROP $ MSNPROFILE : $+ %msnx.showprof $lf JOIN $msn.get($sockname,fullroom) %pass
       }
       else {
-        sockwrite -tn $sockname AUTH GateKeeperPassport S : $+ $msn.authkey $lf USER * * " $+ $ip $+ " :Vincula Neo (4.0) $lf NICK $msn.get($sockname,nick) $lf PROP $ MSNPROFILE : $+ %msnx.showprof $lf JOIN $msn.get($sockname,fullroom) %pass
+        sockwrite -tn $sockname AUTH GateKeeperPassport S : $+ $msn.authkey $lf USER * * " $+ $ip $+ " :Vincula Neo (4.1) $lf NICK $msn.get($sockname,nick) $lf PROP $ MSNPROFILE : $+ %msnx.showprof $lf JOIN $msn.get($sockname,fullroom) %pass
       }
     }
     elseif (AUTH GateKeeper*@GateKeeper* 0 iswm $1-) {
       if (AUTH GateKeeper*@GateKeeper 0 iswm $1-) {
-        if (%msnx.usepass) var %pass $msn.ownerkey($msn.get($sockname,room))
+        if (%msnx.usepass) var %pass $msn.roompass($msn.get($sockname,room))
         if (($msn.get($sockname,nick)) && (!$msn.get($sockname,guest)) && (%msnpass.cookie)) sockwrite -tn $sockname NICK $msn.get($sockname,nick) $lf JOIN $msn.get($sockname,fullroom) %pass
         elseif ($msn.get($sockname,guest)) sockwrite -tn $sockname NICK > $+ $msn.get($sockname,nick) $lf JOIN $msn.get($sockname,fullroom) %pass
       }
@@ -1278,7 +1325,7 @@ on *:SOCKREAD:msn.server.*: {
       elseif ($gettok($3,4,44) == @) { sockwrite -tn %x $1 MODE $msn.get($sockname,room) +o $right($gettok($1,1,33),-1) }
       elseif ($gettok($3,4,44) == .) { sockwrite -tn %x $1 MODE $msn.get($sockname,room) +q $right($gettok($1,1,33),-1) }
 
-if ($sockname != msn.server.999) .timer -m 1 300 msn.chklst.join $right($gettok($1,1,33),-1) $gettok($sockname,3,46)
+      if ($sockname != msn.server.999) .timer -m 1 300 msn.chklst.join $right($gettok($1,1,33),-1) $gettok($sockname,3,46)
 
       if (%msnx.ojprof) {
         if ($gettok($3,3,44) == FY) { sockwrite -tn %x :TK2CHATCHATA01 818 $scid($gettok($sockname,3,46)).me $right($gettok($1,1,33),-1) MSNPROFILE :13 }
@@ -1321,7 +1368,7 @@ if ($sockname != msn.server.999) .timer -m 1 300 msn.chklst.join $right($gettok(
       elseif (:* iswm $4) {
         if (:VERSION* iswm $4) {
           if (!%msnc.dover) {
-            sockwrite -tn msn.server. $+ $gettok($sockname,3,46) NOTICE $right($gettok($1,1,33),-1) :VERSION Vincula Neo (v4.0), by eXonyte (mIRC $version on Win $+ $os $+ )
+            sockwrite -tn msn.server. $+ $gettok($sockname,3,46) NOTICE $right($gettok($1,1,33),-1) :VERSION Vincula Neo (v4.1), by eXonyte (mIRC $version on Win $+ $os $+ )
           }
           set -u3 %msnc.dover $true
           scid $gettok($sockname,3,46) echo $color(ctcp) -t $!msn.get($sockname,room) [[ $+ $right($gettok($1,1,33),-1) VERSION]
@@ -1379,7 +1426,7 @@ if ($sockname != msn.server.999) .timer -m 1 300 msn.chklst.join $right($gettok(
 
     elseif ($2 == KICK) {
       sockwrite -tn %x $1-
-      if (%msnx.usepass) var %p $msn.ownerkey($msn.get($sockname,room))
+      if (%msnx.usepass) var %p $msn.roompass($msn.get($sockname,room))
       if (($4 == $scid($gettok($sockname,3,46)).me) && (%msnx.kickrj)) sockwrite -tn $sockname JOIN $msn.get($sockname,fullroom) %p
     }
 
@@ -1534,7 +1581,7 @@ on *:SOCKREAD:msn.mirc.*: {
       else sockwrite -tn %x $1-
     }
     elseif ($1 == JOIN) {
-      if (($3 == $null) && (%msnx.usepass)) sockwrite -tn %x $1- $msn.ownerkey($msn.get($sockname,room))
+      if (($3 == $null) && (%msnx.usepass)) sockwrite -tn %x $1- $msn.roompass($msn.get($sockname,room))
       else sockwrite -tn %x $1-
     }
     elseif ($1 == PRIVMSG) {
@@ -1600,7 +1647,7 @@ on *:CTCPREPLY:”DTäE: {
   if (($sock(msn.*. $+ $cid,0) >= 2) && ($2- == $null)) {
     echo $color(ctcp) -t $msn.get($cid,room) [[ $+ $nick ”DTäE]
     if (!%msnc.doircdom) {
-      .ctcpreply $nick ”DTäE Vincula Neo (v4.0), by eXonyte (mIRC $version on Win $+ $os $+ )
+      .ctcpreply $nick ”DTäE Vincula Neo (v4.1), by eXonyte (mIRC $version on Win $+ $os $+ )
     }
     set -u3 %msnc.doircdom $true
     haltdef
@@ -1619,10 +1666,10 @@ on ^*:OPEN:?:*: {
     if ((%msnx.sounds) && ($sock(msn.server. $+ $cid)) && (%msnx.snd.whsp != $null)) splay -w " $+ %msnx.snd.whsp $+ "
     var %p = $left($nick($comchan($nick,1),$nick).pnick,1)
     if (%p == $left($nick,1)) unset %p
-    .timer 1 0 echo -tm $nick $msn.ifdecode(< $+ %p $+ $nick $+ > $1-)
+    query -n $nick
+    .timer 1 0 echo -tmi2 $nick $msn.ifdecode(< $+ %p $+ $nick $+ > $1-)
     .timer 1 0 echo $color(info2) -t $nick * Decoded nickname is $nick
     .timer 1 0 echo $color(info2) -t $nick * Whisper from $!msn.get($cid,fullroom)
-    query -n $nick
     halt
   }
 }
@@ -1664,7 +1711,7 @@ alias -l msn.pop.pp {
 
 ;--- Popup menus
 menu query {
-  $iif($sock(msn.*. $+ $cid,0) == 2,Vincula Neo (4.0))
+  $iif($sock(msn.*. $+ $cid,0) == 2,Vincula Neo (4.1))
   . $+ $msn.decode($1) :echo $color(info2) -at * Decoded: $msn.decode($$1) / Undecoded: $$1 | clipboard $msn.ifdecode($$1)
   .. $+ $iif($gettok($ial($1 $+ *,1),2,33) != $null,$ifmatch) $+ :echo $color(info2) -at * Address:  $ial($1 $+ *,1)
   .-
@@ -1674,7 +1721,7 @@ menu query {
 }
 
 menu nicklist {
-  $iif($sock(msn.*. $+ $cid,0) == 2,Vincula Neo (4.0))
+  $iif($sock(msn.*. $+ $cid,0) == 2,Vincula Neo (4.1))
   . $+ $msn.decode($$1)
   .. $+ $1 $+ :echo $color(info2) -at * Decoded: $msn.decode($$1) / Undecoded: $$1 | clipboard $msn.ifdecode($$1)
   .. $+ $iif($gettok($ial($1 $+ *,1),2,33) != $null,$ifmatch) $+ :echo $color(info2) -at * Address:  $ial($1 $+ *,1)
@@ -1703,7 +1750,7 @@ menu nicklist {
 }
 
 menu channel {
-  $iif($sock(msn.*. $+ $cid,0) == 2,Vincula Neo (4.0))
+  $iif($sock(msn.*. $+ $cid,0) == 2,Vincula Neo (4.1))
   .Get the room's URL
   ..Hex:msn.geturl h
   ..Normal:msn.geturl
@@ -1739,7 +1786,7 @@ menu channel {
 }
 
 menu menubar,status {
-  Vincula Neo (4.0)
+  Vincula Neo (4.1)
   .Change Vincula settings...:msn.setup
   .Current Userdata1 key $+ $chr(58) $msn.ud1 : echo $color(info2) -at * Current Userdata1 key: $msn.ud1 | clipboard $msn.ud1
   .-
@@ -2327,7 +2374,7 @@ on *:DIALOG:msn.appedit:init:*: {
   else did -c $dname 16 1
 }
 
-on *:DIALOG:msn.appedit:sclick:99: {
+on *:DIALOG:msn.*ppedit:sclick:99: {
   if (!$did(2)) {
     var %x $input(You must include a name for the Passport data.,516,Need a Name)
     halt
@@ -2359,7 +2406,7 @@ on *:DIALOG:msn.appedit:sclick:99: {
     elseif ($did(16).sel == 7) %x showprof 13
     if (msn.ppadd == $dname) %x updated $ctime
     var %n $replace($did(2),$chr(32),$chr(160))
-    if ($didwm(msn.setup. $+ $cid,43,%n) < 1) {
+    if (($dialog(msn.setup. $+ $cid)) && ($didwm(msn.setup. $+ $cid,43,%n) < 1)) {
       did -a msn.setup. $+ $cid 43 %n
       did -c msn.setup. $+ $cid 43 $didwm(msn.setup. $+ $cid,43,%n)
     }
@@ -2519,43 +2566,41 @@ alias access {
 dialog msn.access {
   title "Access List for..."
   icon $mircexe , 5
-  size -1 -1 246 137
+  size -1 -1 245 156
   option dbu
 
-  list 1, 1 2 200 60, vsbar hsbar disable
+  list 1, 1 2 200 75, vsbar hsbar disable
 
-  box "Info", 2, 1 58 200 77
-  text "Placed by:", 3, 5 66 40 7, right
-  edit "", 4, 48 64 150 11, read autohs
-  text "Remaining Time:", 5, 5 78 40 7, right
-  edit "", 6, 48 76 25 11, read autohs
-  text "minutes", 7, 75 78 150 7
-  text "Reason:", 8, 5 90 40 7, right
-  edit "", 9, 48 88 150 31, read multi autovs
-  text "Access Mask:", 10, 5 122 40 7, right
-  edit "", 11, 48 120 150 11, read autohs
+  box "Info", 2, 1 78 200 77
+  text "Placed by:", 3, 5 86 40 7, right
+  edit "", 4, 48 84 150 11, read autohs
+  text "Remaining Time:", 5, 5 98 40 7, right
+  edit "", 6, 48 96 25 11, read autohs
+  text "minutes", 7, 75 98 150 7
+  text "Reason:", 8, 5 110 40 7, right
+  edit "", 9, 48 108 150 31, read multi autovs
+  text "Access Mask:", 10, 5 141 40 7, right
+  edit "", 11, 48 140 150 11, read autohs
 
   button "Add Entry", 12, 203 2 40 12, disable
   button "Delete Entry", 13, 203 16 40 12, disable
-  button "Clear Grant", 14, 203 30 40 12, disable
-  button "Clear Voice", 18, 203 44 40 12, disable
-  button "Clear Host", 19, 203 58 40 12, disable
-  button "Clear Owner", 20, 203 72 40 12, disable
-  button "Refresh List", 15, 203 86 40 12
+  button "Clear Denies", 21, 203 34 40 12, disable
+  button "Clear Grants", 14, 203 48 40 12, disable
+  button "Clear Voices", 18, 203 62 40 12, disable
+  button "Clear Hosts", 19, 203 76 40 12, disable
+  button "Clear Owners", 20, 203 90 40 12, disable
+  button "Refresh List", 15, 203 104 40 12
 
-  button "Export", 16, 203 104 20 12
-  button "Import", 17, 223 104 20 12, disable
+  button "Export", 16, 203 122 20 12
+  button "Import", 17, 223 122 20 12, disable
 
-  button "Done", 99, 203 122 40 12, cancel default
+  button "Done", 99, 203 142 40 12, cancel default
 }
 
 on *:DIALOG:msn.access*:init:*: {
   dialog -t $dname Access List for $msn.get($gettok($dname,3,46),room)
   did -a $dname 1 Retrieving Access list...
-  if ($me isop $msn.get($gettok($dname,3,46),room)) {
-    did -e $dname 12,13,14,17,18,19
-  }
-  if ($me isowner $msn.get($gettok($dname,3,46),room)) did -e $dname 20
+  if ($me isop $msn.get($gettok($dname,3,46),room)) did -e $dname 12,13,14,17,18,19,20,21
   if ($hget($dname)) hfree $dname
   hmake $dname 2
   hadd $dname num 1
@@ -2584,24 +2629,14 @@ on *:DIALOG:msn.access*:sclick:13: {
   }
 }
 
-on *:DIALOG:msn.access*:sclick:14: {
-  msn.access.clear $msn.get($cid,room) grant
-}
-
-on *:DIALOG:msn.access*:sclick:18: {
-  msn.access.clear $msn.get($cid,room) voice
-}
-
-on *:DIALOG:msn.access*:sclick:19: {
-  msn.access.clear $msn.get($cid,room) host
-}
-
-on *:DIALOG:msn.access*:sclick:20: {
-  msn.access.clear $msn.get($cid,room) owner
-}
+on *:DIALOG:msn.access*:sclick:14: msn.access.clear $msn.get($cid,room) grant
+on *:DIALOG:msn.access*:sclick:18: msn.access.clear $msn.get($cid,room) voice
+on *:DIALOG:msn.access*:sclick:19: msn.access.clear $msn.get($cid,room) host
+on *:DIALOG:msn.access*:sclick:20: msn.access.clear $msn.get($cid,room) owner
+on *:DIALOG:msn.access*:sclick:21: msn.access.clear $msn.get($cid,room) deny
 
 alias -l msn.access.clear {
-  if ($input(Are you sure you want to clear the $2 access list in $1 $+ ?,264,Clear Access List)) {
+  if ($input(Are you sure you want to clear the $2 list in $1 $+ ?,264,Clear Access List)) {
     access $1 clear $2
     access $msn.get($cid,room)
     did -r msn.access. $+ $cid 1
