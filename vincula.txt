@@ -1,6 +1,6 @@
-Vincula Neo (v4.4) - eXonyte's MSN Chat connection script
+Vincula Neo (v4.5) - eXonyte's MSN Chat connection script
 
-Date: Monday, October 28, 2002
+Date: Monday, December 8, 2002
 
 -----------------------------------------------------------------------
 
@@ -16,6 +16,13 @@ likely conflict with it.  MTS engine support may be added at a future
 date to correct this, or the display events can be modified at will.
 
 -----------------------------------------------------------------------
+
+v4.5 - What's new:
+- Made it switch between your installed MSN Chat OCX and a hacked one,
+  so that it can connect again.
+- Had to disable the "Join using MSN Chat" options, might be able to
+  fix them later, we'll see.
+- Fixed some other little bugs, don't remember what though.
 
 v4.4 - What's new:
 - Passport updater should be fixed now.  If the Windows XP Passport
@@ -900,4 +907,4 @@ v3.5 - What's new:
 v3.4 - Initial release
 
 -----------------------------------------------------------------------
-Copyright © 2002 eXonyte                       Last Updated: 10/19/2002
+Copyright © 2002 eXonyte                       Last Updated: 12/08/2002
