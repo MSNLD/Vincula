@@ -1,22 +1,73 @@
-Vincula v3.4 - eXonyte's MSN Chat connection script
+Vincula v3.5 - eXonyte's MSN Chat connection script
 
-Date: May 23, 2002
+Date: June 16, 2002
 
 -----------------------------------------------------------------------
 
-Requires mIRC 6.x, only tested in 6.01.
+Requires mIRC 6.x, only tested in 6.01 and newer.
 WILL NOT work in mIRC 5.91 or lower.
 
+If you are using a script or addon that changes the way mIRC displays
+any events, especially a theme system, then Vincula will likely
+conflict with it.  MTS engine support may be added at a future date to
+correct this, or the display events can be modified at will.
+
+Note: mIRC 6.02 is not officially supported because of some bugs that
+I had come across when I tried it, so mIRC 6.01 is recommended.  If you
+can't find a copy elsewhere, you can download mIRC 6.01 at:
+http://exonyte.dyndns.org/mirc601.exe
+
 -----------------------------------------------------------------------
 
-Make sure vincula34.mrc and nHTMLn_2.9.dll are in the same folder, and
-then load vincula34.mrc into mIRC.  If you don't know how to load a
+v3.5 - What's new:
+- The filename will from now on just be "vincula.mrc" so that you can
+  just close mIRC, replace the file, and reopen mIRC, to upgrade.
+- Added more characters to the text decoder.
+- Fixed a bug in the MSN Color support that was causing dark gray and
+  blue to display wrongly.
+- Added a Passport Info editor, in case you prefer to manually extract
+  your passport info, or you want to edit it for some reason. To open
+  the dialog use /msn.editpp or choose "Passport Info Editor" from a
+  popup menu.
+- Changed the "Force View Profile" menu popup to "View Profile Type"
+  and changed the way that the "View Profile" popup works in order to
+  support the new Male/Female/Picture profile icons in MSN Chat 4.2.
+- Improved the passport grabber, it's now practically automatic.
+  The old method is still available as:  /msn.mgetpp
+- Changed the way the encoder works.  Now will only encode what you
+  actually say so that it doesn't interfere with scripts that use the
+  $nick identifier, and it won't interfere with any other /commands.
+- Added a dialog that can be used for handling the /access list. To
+  open the dialog, open it from the Vincula menu, or type:  /access
+  This will NOT interfere with using the /access command in any way.
+- Changed the Join URL dialogs (the ones accessible by menus), so that
+  they properly say "URL" instead of "Hex."
+- Made the font scanner attempt to autodetect the font folder, so that
+  there's less chance for the user to pick the wrong folder.
+- Added a timer for room joining, so that you can see how long it takes
+  to get into a room.
+- The Vincula menu in channels and on the nickname list will now only
+  show up in MSN connection windows. If you are connected to a normal
+  IRC network, the Vincula popup menus will be hidden.
+- Fixed the /unload command if you tried to load it in a version older
+  than 6.0, it was missing a -rs
+- Probably a couple of other small things that I just forgot to write
+  down in here.
+- Fixed any other bugs I came across, either by info from others or by
+  my own experimenting and testing.
+
+v3.4 - Initial release
+
+-----------------------------------------------------------------------
+
+Make sure vincula.mrc and nHTMLn_2.9.dll are in the same folder, and
+then load ONLY vincula.mrc into mIRC.  If you don't know how to load a
 script, then in mIRC type:
 
 //load -rs " $+ $sfile(*.mrc) $+ "
 
-in any mIRC window and choose vincula34.mrc from the list, from
-whetever folder you had previously unzipped it to.
+in any mIRC window and choose vincula.mrc from the list, from
+whatever folder you had previously unzipped it to.
 
 You will get a message saying that the script has been loaded, and then
 it will perform various one-time initialization steps.  It will also
@@ -37,6 +88,34 @@ mIRC Command menu at the top, in between DCC and Window, in the
 To load your passport information so that you can connect through
 passport:
 
+The easiest way is to click the Refresh Passport button in the Vincula
+Options dialog, or choose "Update Passport information" from one of the
+Vincula menus (either in the Status window, or in the mIRC menubar).
+
+Vincula will scan your Internet Explorer cache, and then it will open
+an Internet Explorer window.
+
+All you need to do is enter your login information, and it will sign in
+to the MSN room called TheLobby.
+
+Once Internet Explorer has loaded the chat page, you can simply close
+the window, and your passport info should be updated.  If it is, then
+you will see Vincula's message that says passport info was found.
+
+For the curious, all Vincula is doing while scanning the cache, is it
+is making sure it reads the file that contains your current passport
+info, and not a file that contains outdated info.  If you currently
+have a room open in Internet Explorer, it may give you a /remove error
+in mIRC and then say that it found your passport info.  If the room you
+have open is using the right passport, then you can go ahead and use
+it, otherwise you'll have to either leave the room or use the manual
+update method below.
+
+-----------------------------------------------------------------------
+
+The manual way to update your passport info, if the simple method
+doesn't work, is as follows:
+
 Go to http://chat.msn.com and join any room (even one that doesn't
 exist).
 
@@ -47,10 +126,9 @@ just save it wherever you like.
 
 Now, back in mIRC, type:
 
-/msn.getpp
+/msn.mgetpp
 
-or choose "Update Passport information" from the top menu, and choose
-the file you just saved.
+and choose the file you just saved.
 
 It should scan through the file and say that it found the passport
 info.
@@ -60,7 +138,9 @@ info.
 Joining a room:
 
 After issuing any of the below room-join commands, the script will ask
-you for a nickname.  This DOES allow you to use almost any nickname you
+you for a nickname.  If you want to use your passport's built-in
+nickname then you can simply leave the box blank and click OK. This
+name dialog in fact DOES allow you to use almost any nickname that you
 desire.  If you want to use a unicode name, make sure you check the box
 that says "Name is in Unicode format."  If you are using plain ASCII in
 the name (such as directly typing Alt+0169 to get ©), then leave the
@@ -77,15 +157,19 @@ will use this key when joining.
 /msn -g %#RoomName [key]
 ------------------------
 Joins a room using a Guest nickname (you will be asked for a name).
+If you use -c instead of -g, it will join a Community Room
 
 /joinurl [-g] http://chat.msn.com... [key]
 ------------------------------------------
 Joins the room based on the address for the room.  If you want to join
 in Guest mode, use -g just like in the /msn command.
+If you use -c instead of -g, it will join a Community Room
+
 
 /joinhex [-g] 2523526F6F6D4E616D65 [key]
 ----------------------------------------
 Joins a room via the hex name.  Use -g to join as a Guest.
+If you use -c instead of -g, it will join a Community Room
 
 /joins [-g|-k key|-gk key] Room Name
 ------------------------------------
@@ -97,6 +181,7 @@ That would join the room "My Chat Room" using the key "somekey". If you
 want to combine -g and -k, just type it as either -gk or -kg and
 include the key, for example:
 /joins -gk somekey My Chat Room
+If you use -c instead of -g, it will join a Community Room
 
 -----------------------------------------------------------------------
 
@@ -110,10 +195,6 @@ use a font that's not on the list just type the name in, Vincula
 doesn't care.
 A description of the other options is as follows:
 
-Show profile icon:
-    Makes MSN Chat users see the profile icon next to your name in the
-    room's user list.  This icon is the little blue guy you may have
-    seen next to people's names, and is set by /prop $me MSNPROFILE 1
 Decode incoming text:
     Passes most incoming messages through the script's Unicode decoder
     so that names and text which use special characters can be read.
@@ -128,18 +209,49 @@ Auto password usage:
     key that it has stored whenever you join a room.
 Encode outgoing text:
     This option will encode any outgoing text, so that MSN Chat users
-    will actually be able to see any special characters you use, such
+    will actually be able to see any special characters you type, such
     as † or §.
+Profile Dropbox:
+    Makes MSN Chat users see one of the the little profile icons next
+    to your name in the room's user list.  This icon is the little guy
+    or girl that you may have seen next to people's names on MSN Chat.
+
+
+/msn.getpass <room>
+-------------------
+Displays the last stored password of <room> and also copies it to the
+clipboard.
+
+/msn.geturl <room>
+------------------
+Displays the URL for <room> and also copies it to the clipboard.
+
 
 /msn.getpp
 ----------
 Use this to update your passport info, according to the instructions
 that are above.
 
+/msn.mgetpp
+-----------
+Use this to update your passport info the old way, also according to
+instructions given above.
+
+/msn.editpp
+-----------
+Opens a dialog so that you can edit your passport information, or enter
+it manually.
+
+/access
+-------
+In addition to setting access levels and such, you can type this
+command alone to open the Access List dialog for whatever room you type
+it in.
+
 /msncolor <on|off>
 ------------------
 Makes the script show you what colors the people are using to speak,
-also shows bold. Does not show Underline (yet), or Italic, or the
+also shows bold and underlined text. Does not show Italic, or the
 actual font. It's off by default, just because it bugs me.
 This option can also be changed from /msn.setup on a per-room basis.
 
@@ -186,7 +298,7 @@ useful for Unicode nicknames.
 $msn.encode(text)
 -----------------
 Returns text, as passed through the script's Unicode encoder. Most
-useful for using non-alphanumeric characters in speaking and nicknames.
+useful for using extended ascii characters in speaking and nicknames.
 
 $msn.pass / $msn.pass(N)
 ------------------------
@@ -217,6 +329,15 @@ Returns a hexadecimal number in ASCII format.
 
 A few comments for MSN scripters:
 
+The socket names are:
+msn.server. $+ $cid 	<-- MSN Server
+msn.mirc. $+ $cid 	<-- mIRC
+If you would prefer to send something to every socket, then just use
+msn.server.* or msn.mirc.* or if you're really daring, msn.*
+
+To get the room name for a socket, use:  $msn.get($sockname,room)
+You can also use $msn.get($cid,room)
+
 Unlike most scripts, this script converts WHISPER commands into
 standard IRC PRIVMSG commands, and vice-versa. It also converts NOTICE
 into PRIVMSG and back.  Basically, what this means for you is that you
@@ -224,12 +345,12 @@ can use a simple "on *:TEXT:*:?:" to trigger a whisper event, instead
 of having to use "raw whisper:*:".  Just a little trick to make your
 life easier.
 
-Also, for those who would be interested in changing how Vincula will
-display all the events (such as messages, kicks, topic changes, etc.),
-you may edit that part of the script as long as you don't mess anything
-up in the process.  I won't be able to help you if you screwed up
-something, so you'd just have to reinstall the original version of the
-script and start over.
+For those who would be interested in changing how Vincula will display
+all the events (such as messages, kicks, topic changes, etc.), you may
+edit that part of the script as long as you don't mess anything up in
+the process.  I won't be able to help you if you screwed up something,
+so you'd just have to reinstall the original version of the script and
+start over.
 
 -----------------------------------------------------------------------
 
@@ -248,7 +369,7 @@ know and I'll put your name in here too!
 Why Vincula?
 Vincula is a plural form of Vinculum, which means "A bond or tie."
 Since the nature of this script is multiple "ties" to MSN Chat, I think
-the name fits it fairly well.
+the name fits it well.
 
 If you would like to include this MSN connection addon with your own
 script, I only ask that it remain completely unmodified, except for the

@@ -1,5 +1,4 @@
-;Vincula v3.4 - eXonyte's MSN Chat connection script
-;Vincula is a plural form of Vinculum, which means "A bond or tie"
+;Vincula v3.5 - eXonyte's MSN Chat connection script
 
 ;--- User editable display stuff
 
@@ -12,7 +11,12 @@ raw 818:*: {
     haltdef
   }
   elseif (($3 == MSNPROFILE) && ($msn.get($cid,doprof))) {
-    if ($4 == 1) prop $2 PUID
+    if ($4 == 1) echo $color(info2) -at *** $msn.decode($2) has a regular profile
+    elseif ($4 == 3) echo $color(info2) -at *** $msn.decode($2) $+ 's profile says he is male
+    elseif ($4 == 5) echo $color(info2) -at *** $msn.decode($2) $+ 's profile says she is female
+    elseif ($4 == 9) echo $color(info2) -at *** $msn.decode($2) has a picture in his or her profile
+    elseif ($4 == 11) echo $color(info2) -at *** $msn.decode($2) $+ 's profile has a picture, and says he is male
+    elseif ($4 == 13) echo $color(info2) -at *** $msn.decode($2) $+ 's profile has a picture, and says she is female
     else echo $color(info2) -at *** $msn.decode($2) does not have a profile
     %msn.stoppropend = $true
     haltdef
@@ -63,11 +67,13 @@ on *:INPUT:#: {
     elseif ($me isvo $chan) %p = +
     if (/me != $1) {
       echo $color(own) -ti2 $chan $+(<,$msn.decode(%p $+ $me),>) $1-
-      .msg $chan $1-
+      if ($msn.get($cid,encode)) .msg $chan $msn.encode($1-)
+      else .msg $chan $1-
     }
     else {
       echo $color(own) -ti2 * $msn.decode(%p $+ $me) $2-
-      .describe $chan $2-
+      if ($msn.get($cid,encode)) .describe $chan $msn.encode($2-)
+      else .describe $chan $2-
     }
     haltdef
   }
@@ -81,22 +87,24 @@ on *:INPUT:?: {
     elseif ($me isvo $sock(msn.server. $+ $cid).mark) %p = +
     if (/me != $1) {
       echo $color(own) -ti2 $target $+(<,$msn.decode(%p $+ $me),>) $1-
-      .msg $target $1-
+      if ($msn.get($cid,encode)) .msg $target $msn.encode($1-)
+      else .msg $target $1-
     }
     else {
       echo $color(own) -ti2 $target $+(<,$msn.decode(%p $+ $me),>) * $+ $2- $+ *
-      .msg $target * $+ $2- $+ *
+      if ($msn.get($cid,encode)) .msg $target * $+ $2- $+ *
+      else .msg $target * $+ $2- $+ *
     }
     haltdef
   }
 }
 
 on ^*:JOIN:*: {
-  if ($nick === $me) unset %msnc.*
   if ($msn.get($cid,decode)) {
     if ($nick === $me) {
-      echo $color(join) -t $chan *** Now talking in $chan
-      if (%msn.pass. [ $+ [ $right($chan,-2) ] ] ) echo $color(join) -t $chan *** Last stored room key is:  $msn.roompass($chan)
+      echo $color(join) -t $chan *** Now talking in $chan $iif(%msnc.timer,$chr(40) $+ Join time: $calc(($ticks - %msnc.timer) / 1000) seconds $+ $chr(41))
+      if ($msn.roompass($chan)) echo $color(join) -t $chan *** Last stored room key is:  $msn.roompass($chan)
+      unset %msnc.*
     }
     else {
       echo $color(join) -t $chan *** Joins:  $msn.decode($nick) ( $+ $address $+ ): $nick
@@ -120,7 +128,7 @@ on ^*:TEXT:*:#: {
     if ($nick isowner $chan) %p = .
     elseif ($nick isop $chan) %p = @
     elseif ($nick isvo $chan) %p = +
-    echo $color(normal) -tmi2 $chan $msn.decode($+(<,%p,$nick,>) $1-)
+    echo $color(normal) -tmi2 $chan < $+ %p $+ $msn.decode($nick) $+ > $msn.decode($1-)
     haltdef
   }
 }
@@ -142,7 +150,8 @@ on ^*:TEXT:*:?: {
     if ($nick isowner $comchan($nick,1)) %p = .
     elseif ($nick isop $comchan($nick,1)) %p = @
     elseif ($nick isvo $comchan($nick,1)) %p = +
-    echo $color(normal) -tmi2 $nick $msn.decode($+(<,%p,$nick,>) $1-)
+    echo $color(normal) -tmi2 $nick < $+ %p $+ $msn.decode($nick) $+ > $msn.decode($1-)
+
     haltdef
   }
 }
@@ -171,7 +180,7 @@ on ^*:RAWMODE:*: {
 on ^*:KICK:*: {
   if ($msn.get($cid,decode)) {
     echo $color(kick) -ti2 $chan $msn.decode(*** $knick was kicked by $nick $iif($1- != $null,$chr(40) $+ $1- $+ $chr(41))) $+ : $knick
-    if ($window($nick) != $null) echo $color(kick) $nick -ti2 $msn.decode(*** $knick was kicked by $nick $iif($1- != $null,$chr(40) $+ $1- $+ $chr(41)))
+    if ($window($knick) != $null) echo $color(kick) -ti2 $knick $msn.decode(*** $knick was kicked by $nick $iif($1- != $null,$chr(40) $+ $1- $+ $chr(41)))
     haltdef
   }
 }
@@ -287,6 +296,8 @@ alias msn {
   msn.set 999 encode %msnx.encode
 
   if (%n == $null) %n = the default passport nickname
+
+  %msnc.timer = $ticks
   echo $color(info2) -at *** Joining %x as $iif(%g,Guest_ $+ %n,%n) $+ , $iif($gettok(%x,2,32),using the key $gettok(%x,2,32) $+ $chr(44)) please wait...
 
   var %l 999
@@ -314,8 +325,8 @@ alias joins {
 alias joinurl {
   if (($1 == -g) || ($1 == -c)) {
     var %x = $replace($msn.urldecode($2-),$chr(32),\b)
-    if (rhx= isin $gettok(%x,2-,63)) joinhex $1 $remove($wildtok($gettok(%x,2-,63),rhx=*,1,38),rhx=) $2
-    elseif (rm= isin $gettok(%x,2-,63)) msn $1 $remove($wildtok($gettok(%x,2-,63),rm=*,1,38),rm=) $2
+    if (rhx= isin $gettok(%x,2-,63)) joinhex $1 $remove($wildtok($gettok(%x,2-,63),rhx=*,1,38),rhx=) $3
+    elseif (rm= isin $gettok(%x,2-,63)) msn $1 $remove($wildtok($gettok(%x,2-,63),rm=*,1,38),rm=) $3
     else echo $color(info) -ta *** Couldn't find a room name in the URL
   }
   else {
@@ -338,8 +349,7 @@ alias msn.urldecode {
   return $replace(%decode, $eval(%20,0), +)
 }
 
-;Also thanks to whoever it was that originally posted this, I won't get
-;too much use out of it, but it'll help anyway :)
+;Also thanks to whoever it was that originally posted this :)
 ; Usage: //echo -a $msn.registry(<Key>\\<Value>)
 ; Returns $false on error.
 alias msn.registry {
@@ -357,13 +367,14 @@ alias -l msn.readreg {
 }
 
 on *:LOAD: {
-  echo $color(info2) -ta *** You have just loaded Vincula v3.4 - eXonyte's MSN Chat Connection script
+  echo $color(info2) -ta *** You have just loaded Vincula v3.5 - eXonyte's MSN Chat Connection script
   if ($version < 6) {
-    echo $color(info2) *** Vincula will not work on any mIRC lower than version 6.0.  Unloading now...
-    .timer 1 0 .unload " $+ $script $+ "
+    echo $color(info2) -ta *** Vincula will not work on any mIRC lower than version 6.0.  Unloading now...
+    set -u5 %msn.nostart $true
+    .timer 1 0 .unload -rs " $+ $script $+ "
     halt
   }
-  elseif ($version != 6.01) echo $color(info2) *** Vincula was only tested on mIRC v6.01.  It should work on your version ( $+ $version $+ ) but it is untested and not supported.
+  elseif ($version > 6.02) echo $color(info2) -ta *** Vincula was only tested on mIRC v6.01 and v6.02.  It should work on your version ( $+ $version $+ ) but it is untested and not supported.
 
   echo $color(info2) -ta *** Go read the instructions to see how to use this thing!
   echo $color(info2) -ta *** Importing initial font settings from the MSN Chat Control...
@@ -372,14 +383,15 @@ on *:LOAD: {
   if (%msnf.fstyle == $null) %msnf.fstyle = $calc($msn.registry(HKEY_CURRENT_USER\Software\Microsoft\MSNChat\4.0\\FontStyle) + 1)
   if (%msnx.decode == $null) %msnx.decode = $true
   if (%msnx.usepass == $null) %msnx.usepass = $true
-  if (%msnx.showprof == $null) %msnx.showprof = $true
+  if (%msnx.showprof == $null) %msnx.showprof = 1
   if (%msnx.encode == $null) %msnx.encode = $false
-  echo $color(info2) -ta *** Building encoder library
+  echo $color(info2) -ta *** Building encoder library...
   msn.enchash
   msn.updatefonts
   echo $color(info2) -ta *** Your current Userdata1 key is:  $msn.ud1
   echo $color(info2) -ta *** Opening the script options dialog...
   msn.setup
+  echo $color(info2) -ta *** Don't forget to refresh your passport info!
   set -u5 %msn.nostart $true
 }
 
@@ -390,12 +402,13 @@ on *:START: {
     if (%msnf.fstyle == $null) %msnf.fstyle = $calc($msn.registry(HKEY_CURRENT_USER\Software\Microsoft\MSNChat\4.0\\FontStyle) + 1)
     if (%msnx.decode == $null) %msnx.decode = $true
     if (%msnx.usepass == $null) %msnx.usepass = $true
-    if (%msnx.showprof == $null) %msnx.showprof = $true
+    if (%msnx.showprof == $null) %msnx.showprof = 1
     if (%msnx.encode == $null) %msnx.encode = $false
     hmake msn.fonts 30
-    hload msn.fonts " $+ $scriptdir $+ vfcache.dat"
+    if (!$isfile($scriptdir $+ vfcache.dat)) msn.updatefonts
+    else hload msn.fonts " $+ $scriptdir $+ vfcache.dat"
     msn.enchash
-    echo $color(info2) *** Vincula v3.4 loaded - Current Userdata1 key is:  $msn.ud1
+    echo $color(info2) *** Vincula v3.5 loaded - Current MSN Userdata1 key is:  $msn.ud1
   }
 }
 
@@ -405,11 +418,12 @@ alias msn.ud1 return $msn.registry(HKEY_CURRENT_USER\Software\Microsoft\MSNChat\
 alias msn.decode {
   var %r, %l 1
   if (($msn.get($cid,decode)) && ($sock(msn.*. $+ $cid,1) != $null)) {
-    %r = $replace($1-,,B,,-,,-,,-,,E,,C,,A,,R,,K,,y,ﺘ,i,ﺉ,s,דּ,t,טּ,u,ﻉ,e,,k,,F,,u,,g,,<,,>,,$chr(37),,8,,d,,m,,h,ﻛ,s,,G,,M,,l,,s,,_,,T,,r,,a,,n,,c,,e,,N,,a,,t,,i,,o,,n,,f,,w,,\,,|,,@,,P,,D,,',,�,,$chr(40),,$chr(41),,*,,:,,[,,],,p,,.)
-    %r = $replace(%r,ņ,n,Ω,n,��,y,р,p,Р,P,ř,r,х,x,Į,I,Ļ,L,Ф,o,Ĉ,C,ŏ,o,ũ,u,ń,n,Ģ,G,ŕ,r,ś,s,ķ,k,Ŗ,R,ז,i,ε,e,ק,r,ћ,h,м,m,،,�,ī,i,‘,�,’,�,ū,u,ē,e,¢,�,,S,,Y,,O,,I,Ά,A,ъ,b,��,T,Φ,o,Ђ,b,я,r,Ё,E,д,A,К,K,Ď,D,и,n,θ,o,М,M,Ї,I,Т,T,Є,e,Ǻ,A,ö,�,ä,�,–,�,·,�,Ö,�,Ü,�,Ë,�,ѕ,s,ą,a,ĭ,i,й,n,в,b,о,o,ш,w,Ğ,G,đ,d,з,e,Ŧ,T,α,a,ğ,g,ú,�,Ŕ,R,Ą,A,ć,c,Đ,�,Κ,K,ў,y,µ,�,Í,�,‹,�,¦,�,Õ,�,Ù,�,À,�,Π,N,ғ,f,ΰ,u,Ŀ,L,ō,o,ς,c,ċ,c,ħ,h,į,i,ŧ,t,Ζ,Z,Þ,�,þ,�,ç,�,á,�,¾,�,ž,�,Ç,�,� $+ $chr(173),-,Á,�,…,�,¨,�,ý,�,ˉ,�,”,�,Û,�,ì,�,ρ,p,έ,e,г,r,à,�,È,�,¼,�,ĵ,j,ã,�,ę,e,ş,s,º,�,Ñ,�,ã,�,Æ,�,˚,�,Я,R,˜,�,Î,�,Ê,�,Ý,�,Ï,�,É,�,‡,�,Ì,�,ª,�,ó,�,™,�,Ò,�,í,�,¿,�,Ä,�,¶,�,ü,�,ƒ,�,ð,�,ò,�,õ,�,¡,�,é,�,ß,�,¤,�,×,�,ô,�,Š,�,ø,�,›,�,â,�,î,�,€,�,š,�,ï,�,ÿ,�,å,�,©,�,®,�,û,�,†,�,°,�,§,�,±,�,²,�,»,�,è,�)
-    %r = $replace(%r,۰,�,Ĵ,J,І,I,Σ,E,ι,i,Ő,O,δ,d,ץ,y,ν,v,ע,y,מ,n,Ž,�,ő,o,Č,C,ė,e,₤,L,Ō,O,ά,a,Ġ,G,Ω,O,Н,H,ể,e,ẵ,a,Ж,K,ề,e,ế,e,ỗ,o,۱,',₣,F,∆,a,Ắ,A,ủ,u,Ķ,K,Ť,T,Ş,S,Θ,O,Ш,W,Β,B,П,N,ẅ,w,ﻨ,i,ﯼ,s,џ,u,ђ,h,¹,�,Ỳ,Y,λ,a,С,C,� $+ $chr(173),E,Ű,U,Ī,I,č,c,Ĕ,E,Ŝ,S,Ị,I,ĝ,g,ŀ,l,ї,i,٭,*,ŉ,n,Ħ,H,Д,A,Μ,M,ё,e,Ц,U,э,e,“,�,ф,o,у,y,с,c,к,k,Å,�,Ƥ,P,℞,R,,I,ɳ,n,ʗ,c,▫,�,ѓ,r,ệ,e,ắ,a,ẳ,a,ů,u,Ľ,L,ư,u,·,�,˙,',η,n,ℓ,l,,�,,�,,�,׀,i,ġ,g,Ň,N,Ŵ,W,Δ,A,ﮊ,J,μ,�,Ÿ,�,ĥ,h,β,�,Ь,b,ų,u,є,e,ω,w,Ċ,C,і,i,ł,l,ǿ,o,∫,s,ż,z,ţ,t,æ,�,≈,=,Ł,L,ŋ,n,گ,S,ď,d,ψ,y,σ,o,ģ,g,Ή,H,ΐ,i,ґ,r,κ,k,Ŋ,N,�,\,,/,¬,�,щ,w,ە,o,ם,d,³,�,½,�,İ,I,ľ,l,ĕ,e,Ţ,T,ŝ,s,ŷ,y,ľ,l,ĩ,i,Ô,�,Ś,S,Ĺ,L,а,a,е,e,Ρ,P,Ј,J,Ν,N,ǻ,a,ђ,h,ή,n,ί,l,Œ,�,¯,�,ā,a,ŵ,w,Â,�,Ã,�,н,H,ˇ,',¸,�,̣,$chr(44),ط,b,Ó,�,Й,N,«,�,ù,�,Ø,�,ê,�)
-    %r = $replace(%r,л,n,ы,bl,б,6,ש,w,―,-,Ϊ,I,,`,ŭ,u,ổ,o,Ǿ,�,ẫ,a,ầ,a,,q,Ẃ,W,Ĥ,H,ỏ,o,−,-,,^,ล,a,Ĝ,G,ﺯ,j,ى,s,Ѓ,r,ứ,u,●,�,ύ,u,,0,,7,,",ө,O,ǐ,i,Ǒ,O,Ơ,O,,2,ү,y,,v,А,A,≤,<,≥,>,ẩ,a,,H,٤,e,ﺂ,i,Ќ,K,Ū,U,,;,ă,a,ĸ,k,Ć,C,Ĭ,I,ň,n,Ĩ,I,Ń,N,Ι,I,Ϋ,Y,,J,,X,,$chr(125),,$chr(123),Ξ,E,ˆ,^,,V,,L,γ,y,ﺎ,i,Ώ,o,ỳ,y,Ć,C,Ĭ,I,ĸ,k,Ŷ,y,๛,c,ỡ,o,๓,m,ﺄ,i,פֿ,G,Ŭ,U,Ē,E,Ă,A,÷,�, ,�,‚,�,„,�,ˆ,�,‰,�,ă,a,,x,,=,ق,J,,?,￼,-,◊,o,т,T,Ā,A,קּ,P,Ė,E,Ę,E,χ,X,ο,o,ϋ,u,‼,!!,ט,v,ﮒ,S,Ч,y,Ґ,r,ě,e,Ę,E,ĺ,I,Λ,a,ο,o,Ú,�,Ř,R,Ư,U,œ,�,,-,—,�,ห,n,ส,a,ฐ,s,Ψ,Y,Ẫ,A,π,n,Ņ,N,�!,o,Ћ,h,ợ,o,ĉ,c,◦,�,ﮎ,S,Ų,U,Е,E,Ѕ,S,۵,o,ي,S,ب,u,ة,o,ئ,s,ļ,l,ı,i,ŗ,r,ж,x,΅,",ώ,w,▪,�,ζ,C,Щ,W,฿,B,ỹ,y,ϊ,i,ť,t,п,n,´,�,ک,s,ﱢ,*,ξ,E,ќ,k,√,v,τ,t,Ð,�,£,�,ñ,�,¥,�,•,�,ë,�,ǎ,a)
-    %r = $replace(%r,ị,i,Α,A, ,�,ﻩ,o,ﻍ,E,ن,u,ẽ,e,ث,u,ㅓ,t,ӛ,e,Ә,E,ﻘ,o,۷,v,שׁ,w,ụ,u,Ŏ,O,,�,ự,u,Ｊ,J,ｅ,e,ａ,a,Ｎ,N,（,$chr(40),＠,@,｀,`,．,.,′,',）,$chr(41),▬,-,◄,<,►,>,∑,E,ֻ,$chr(44),‬,|,‎,|,‪,|,‫,|,Ộ,O,И,N,,W,,z,╳,X,٠,�,Ғ,F,υ,u,‏,�,ּ,�,ǔ,u,ผ,w,Ằ,A,Ấ,A)
+    %r = $replace($1-,,B,,-,�>,-,,-,,-,,E,,C,,A,,R,,K,,y,ﺘ,i,ﺉ,s,דּ,t,טּ,u,ﻉ,e,,k,,F,,u,,g,,<,,>,,$chr(37),,8,,d,,m,,h,ﻛ,s,,G,,M,,l,,s,,_,,T,,r,,a,,n,,c,,e,,N,,a,,t,,i,,o,,n,,f,,w,,\,,|,,@,,P,,D,,',,�,,$chr(40),,$chr(41),,*,,:,,[,,],,p,,.)
+    %r = $replace(%r,χ,X,ņ,n,Ω,n,��,y,р,p,Р,P,ř,r,х,x,Į,I,Ļ,L,Ф,o,Ĉ,C,ŏ,o,ũ,u,ń,n,Ģ,G,ŕ,r,ś,s,ķ,k,Ŗ,R,ז,i,ε,e,ק,r,ћ,h,м,m,،,�,ī,i,‘,�,’,�,۱,',ē,e,¢,�,,S,,Y,,O,,I,Ά,A,ъ,b,��,T,Φ,o,Ђ,b,я,r,Ё,E,д,A,К,K,Ď,D,и,n,θ,o,М,M,Ї,I,Т,T,Є,e,Ǻ,A,ö,�,ä,�,–,�,·,�,Ö,�,Ü,�,Ë,�,ѕ,s,ą,a,ĭ,i,й,n,в,b,о,o,ш,w,Ğ,G,đ,d,з,e,Ŧ,T,α,a,ğ,g,ú,�,Ŕ,R,Ą,A,ć,c,Đ,�,Κ,K,ў,y,µ,�,Í,�,‹,�,¦,�,Õ,�,Ù,�,À,�,Π,N,ғ,f,ΰ,u,Ŀ,L,ō,o,ς,c,ċ,c,ħ,h,į,i,ŧ,t,Ζ,Z,Þ,�,þ,�,ç,�,á,�,¾,�,ž,�,Ç,�,� $+ $chr(173),-,Á,�,…,�,¨,�,ý,�,ˉ,�,”,�,Û,�,ì,�,ρ,p,έ,e,г,r,à,�,È,�,¼,�,ĵ,j,ã,�,ę,e,ş,s,º,�,Ñ,�,ã,�,Æ,�,˚,�,Я,R,˜,�,Î,�,Ê,�,Ý,�,Ï,�,É,�,‡,�,Ì,�,ª,�,ó,�,™,�,Ò,�,í,�,¿,�,Ä,�,¶,�,ü,�,ƒ,�,ð,�,ò,�,õ,�,¡,�,é,�,ß,�,¤,�,×,�,ô,�,Š,�,ø,�,›,�,â,�,î,�,€,�,š,�,ï,�,ÿ,�,å,�,©,�,®,�,û,�,†,�,°,�,§,�,±,�,²,�,è,�)
+    %r = $replace(%r,Ň,N,۰,�,Ĵ,J,І,I,Σ,E,ι,i,Ő,O,δ,o,ץ,y,ν,v,ע,y,מ,n,Ž,�,ő,o,Č,C,ė,e,₤,L,Ō,O,ά,a,Ġ,G,Ω,O,Н,H,ể,e,ẵ,a,Ж,K,ề,e,ế,e,ỗ,o,ū,u,₣,F,∆,a,Ắ,A,ủ,u,Ķ,K,Ť,T,Ş,S,Θ,O,Ш,W,Β,B,П,N,ẅ,w,ﻨ,i,ﯼ,s,џ,u,ђ,h,¹,�,Ỳ,Y,λ,a,С,C,� $+ $chr(173),E,Ű,U,Ī,I,č,c,Ĕ,E,Ŝ,S,Ị,I,ĝ,g,ŀ,l,ї,i,٭,*,ŉ,n,Ħ,H,Д,A,Μ,M,ё,e,Ц,U,э,e,“,�,ф,o,у,y,с,c,к,k,Å,�,Ƥ,P,℞,R,,I,ɳ,n,ʗ,c,▫,�,ѓ,r,ệ,e,ắ,a,ẳ,a,ů,u,Ľ,L,ư,u,·,�,˙,',η,n,ℓ,l,,�,,�,,�,׀,i,ġ,g,Ŵ,W,Δ,A,ﮊ,J,μ,�,Ÿ,�,ĥ,h,β,�,Ь,b,ų,u,є,e,ω,w,Ċ,C,і,i,ł,l,ǿ,o,∫,s,ż,z,ţ,t,æ,�,≈,=,Ł,L,ŋ,n,گ,S,ď,d,ψ,w,σ,o,ģ,g,Ή,H,ΐ,i,ґ,r,κ,k,Ŋ,N,�,\,,/,¬,�,щ,w,ە,o,ם,o,³,�,½,�,İ,I,ľ,l,ĕ,e,Ţ,T,ŝ,s,ŷ,y,ľ,l,ĩ,i,Ô,�,Ś,S,Ĺ,L,а,a,е,e,Ρ,P,Ј,J,Ν,N,ǻ,a,ђ,h,ή,n,ί,l,Œ,�,¯,�,ā,a,ŵ,w,Â,�,Ã,�,н,H,ˇ,',¸,�,̣,$chr(44),ط,b,Ó,�,Й,N,«,�,ù,�,Ø,�,ê,�)
+    %r = $replace(%r,ا,I,л,n,ы,bl,б,6,ש,w,―,-,Ϊ,I,,`,ŭ,u,ổ,o,Ǿ,�,ẫ,a,ầ,a,,q,Ẃ,W,Ĥ,H,ỏ,o,−,-,,^,ล,a,Ĝ,G,ﺯ,j,ى,s,Ѓ,r,ứ,u,●,�,ύ,u,,0,,7,,",ө,O,ǐ,i,Ǒ,O,Ơ,O,,2,ү,y,,v,А,A,≤,<,≥,>,ẩ,a,,H,٤,e,ﺂ,i,Ќ,K,Ū,U,,;,ă,a,ĸ,k,Ć,C,Ĭ,I,ň,n,Ĩ,I,Ń,N,Ι,I,Ϋ,Y,,J,,X,,$chr(125),,$chr(123),Ξ,E,ˆ,^,,V,,L,γ,y,ﺎ,i,Ώ,o,ỳ,y,Ć,C,Ĭ,I,ĸ,k,Ŷ,y,๛,c,ỡ,o,๓,m,ﺄ,i,פֿ,G,Ŭ,U,Ē,E,Ă,A,÷,�, ,�,‚,�,„,�,ˆ,�,‰,�,ă,a,,x,,=,ق,J,,?,￼,-,◊,o,т,T,Ā,A,קּ,P,Ė,E,Ę,E,ο,o,ϋ,u,‼,!!,ט,u,ﮒ,S,Ч,y,Ґ,r,ě,e,Ę,E,ĺ,I,Λ,a,ο,o,Ú,�,Ř,R,Ư,U,œ,�,,-,—,�,ห,n,ส,a,ฐ,s,Ψ,Y,Ẫ,A,π,n,Ņ,N,�!,o,Ћ,h,ợ,o,ĉ,c,◦,�,ﮎ,S,Ų,U,Е,E,Ѕ,S,۵,o,ي,S,ب,u,ة,o,ئ,s,ļ,l,ı,i,ŗ,r,ж,x,΅,",ώ,w,▪,�,ζ,l,Щ,W,฿,B,ỹ,y,ϊ,i,ť,t,п,n,´,�,ک,s,ﱢ,*,ξ,E,ќ,k,√,v,τ,t,Ð,�,£,�,ñ,�,¥,�,•,�,ë,�,ǎ,a)
+    %r = $replace(%r,ằ,a, ,�,Ο,O,₪,n,Ậ,A,,�,,�,,�,,�,,�,,�,ờ,o,‍,�,ֱ,�,־,-,הּ,n,ź,z,‌,�,ُ,',๘,c,ฅ,m,Χ,X,,�,▼,v,ﻜ,S,℮,e,ź,z,ậ,a,๑,a,ﬁ,fi,ь,b,ﺒ,.,ﺜ,:,ศ,a,ภ,n,๏,o,ะ,=,צּ,y,ซ,i,‾,�,∂,a,：,:,≠,=,,+,م,r,ồ,o,Ử,U,Л,N,Ӓ,A,Ọ,O,Ẅ,W,Ỵ,Y,ﺚ,u,ﺬ,i,ﺏ,u,Ż,Z,ﮕ,S,ﺳ,w,ﯽ,u,ﺱ,uw,ﻚ,J,ﺔ,a,,!,ễ,e,ل,J,ر,j,ـ,_,ό,o,₫,d,№,no,ữ,u,Ě,E,φ,o,ﻠ,I,ц,u,,A,,N,Њ,H,Έ,E,,~,,U,ạ,a,,1,,4,,3,ỉ,i,Ε,E,Џ,U,ك,J,★,*,,b,,$chr(35),,$,○,o,ю,10,ỵ,y,ẁ,w,қ,k,ٿ,u,♂,o,תּ,n,٥,o,ﮐ,S,ⁿ,n,ﻗ,9,,b,,$chr(35),,$,○,o,ю,10,ị,i,Α,A, ,�,ﻩ,o,ﻍ,E,ن,u,ẽ,e,ث,u,ㅓ,t,ӛ,e,Ә,E,ﻘ,o,۷,v,שׁ,w,ụ,u,Ŏ,O,,�,ự,u,Ｊ,J,ｅ,e,ａ,a,Ｎ,N,（,$chr(40),＠,@,｀,`,．,.,′,',）,$chr(41),▬,-,◄,<,►,>,∑,E,ֻ,$chr(44),‬,|,‎,|,‪,|,‫,|,Ộ,O,И,N,,W,,z)
+    %r = $replace(%r,ס,o,╳,X,٠,�,Ғ,F,υ,u,‏,�,ּ,�,ǔ,u,ผ,w,Ằ,A,Ấ,A,»,�)
   }
   else %r = $1-
   return %r
@@ -471,48 +485,45 @@ alias msn.roompass {
   else return %msn.pass. [ $+ [ $right($chan,-2) ] ]
 }
 
-; $msn.get($sockname,room) or $msn.get($cid,room)
 alias msn.get {
   if (msn.*.* iswm $1) return $hget(msn. $+ $gettok($$1,3,46),$$2)
   else return $hget(msn. $+ $$1,$$2)
 }
 
-; "/msn.set $sockname item value" or "/msn.set $cid item value"
 alias msn.set {
   if (msn.*.* iswm $1) hadd msn. $+ $gettok($$1,3,46) $$2-
   else hadd msn. $+ $$1 $$2-
 }
 
-; "/msn.unset $sockname item value" or "/msn.unset $cid item value"
 alias msn.unset {
   if (msn.*.* iswm $1) hdel msn. $+ $gettok($$1,3,46) $$2
   else hdel msn. $+ $$1 $$2
 }
 
-; "/msn.clear $sockname" or "/msn.clear $cid"
 alias msn.clear {
   if (msn.*.* iswm $1) hfree msn. $+ $gettok($$1,3,46)
   else hfree msn. $+ $$1
 }
 
-; "/msn.ren oldcid newcid" or whatever
 alias msn.ren {
-  var %old, %new, %l 1
+  if ($hget(msn.999) != $null) {
+    var %old, %new, %l 1
 
-  if (msn.*.* iswm $1) %old = $gettok($1,3,46)
-  else %old = $1
+    if (msn.*.* iswm $1) %old = $gettok($1,3,46)
+    else %old = $1
 
-  if (msn.*.* iswm $2) %new = $gettok($2,3,46)
-  else %new = $2
+    if (msn.*.* iswm $2) %new = $gettok($2,3,46)
+    else %new = $2
 
-  hsave -o msn. $+ %old temp $+ %old $+ .txt
-  hmake msn. $+ %new 1
-  hload msn. $+ %new temp $+ %old $+ .txt
-  hfree msn. $+ %old
-  .remove temp $+ %old $+ .txt
+    hsave -o msn. $+ %old temp $+ %old $+ .txt
+    hmake msn. $+ %new 1
+    hload msn. $+ %new temp $+ %old $+ .txt
+    hfree msn. $+ %old
+    .remove temp $+ %old $+ .txt
 
-  sockrename msn.server. $+ %old msn.server. $+ %new
-  sockrename msn.mirc. $+ %old msn.mirc. $+ %new
+    sockrename msn.server. $+ %old msn.server. $+ %new
+    sockrename msn.mirc. $+ %old msn.mirc. $+ %new
+  }
 }
 
 alias msn.geturl {
@@ -526,39 +537,79 @@ alias msn.getpass {
   clipboard $msn.roompass($1)
 }
 
-; $1 == Channelname
-; $2 == Nickname ($me)
-; $3 == Local port
 alias msn.writehtml {
-  var %x = write $+(",$scriptdir,msnchat.html,")
+  var %x = write $+(",$scriptdir,vincula.html")
 
-  if (((%msnpass.cookie == $null) || (%msnpass.ticket == $null) || (%msnpass.profile == $null)) && (!$msn.get(999,guest))) { msn.getpp }
+  if (((%msnpass.cookie == $null) || (%msnpass.ticket == $null) || (%msnpass.profile == $null)) && (!$msn.get(999,guest))) {
+    sockclose *.999
+    echo $color(info2) -ta *** Passport info is not loaded, please refresh it or try joining as a guest
+    halt
+  }
 
-  write -c $+(",$scriptdir,msnchat.html,") <HTML><BODY STYLE="margin:0">
-  %x <OBJECT ID="ChatFrame" CLASSID="CLSID:7a32634b-029c-4836-a023-528983982a49" width="100%">
-  %x <PARAM NAME="HexRoomName" VALUE=" $+ $msn.tohex($1) $+ ">
+  write -c $+(",$scriptdir,vincula.html") <HTML><BODY STYLE="margin:0">
+
+  if (%msnx.clsid) {
+    %x <OBJECT ID="ChatFrame" $+(CLASSID=",%msnx.clsid,") width="100%">
+  }
+  else {
+    %x <OBJECT ID="ChatFrame" CLASSID="CLSID:7a32634b-029c-4836-a023-528983982a49" width="100%">
+  }
+
+  %x <PARAM NAME="HexRoomName" $+(VALUE=",$msn.tohex($1),">)
   if ($msn.get(999,nick) == $null) %x <PARAM NAME="NickName" VALUE="null">
-  else %x <PARAM NAME="NickName" VALUE=" $+ $msn.get(999,nick) $+ ">
-  %x <PARAM NAME="Server" VALUE="127.0.0.1: $+ $3 $+ ">
+  else %x <PARAM NAME="NickName" $+(VALUE=",$msn.get(999,nick),">)
+  %x <PARAM NAME="Server" $+(VALUE="127.0.0.1:,$3,">)
   %x <PARAM NAME="BaseURL" VALUE="http://chat.msn.com/">
   %x <PARAM NAME="MessageOfTheDay" VALUE="">
   if (!$msn.get(999,guest)) {
-    %x <PARAM NAME="MSNREGCookie"  VALUE=" $+ %msnpass.cookie $+ ">
-    %x <PARAM NAME="PassportTicket" VALUE=" $+ %msnpass.ticket $+ ">
-    %x <PARAM NAME="PassportProfile" VALUE=" $+ %msnpass.profile $+ ">
+    %x <PARAM NAME="MSNREGCookie"  $+(VALUE=",%msnpass.cookie,">)
+    %x <PARAM NAME="PassportTicket" $+(VALUE=",%msnpass.ticket,">)
+    %x <PARAM NAME="PassportProfile" $+(VALUE=",%msnpass.profile,">)
   }
-  if ((!$msn.get(999,guest)) && (%msnx.showprof)) %x <PARAM NAME="MSNPROFILE" VALUE="1">
+  if ((!$msn.get(999,guest)) && (%msnx.showprof)) %x <PARAM NAME="MSNPROFILE" VALUE=" $+ %msnx.showprof $+ ">
   else %x <PARAM NAME="MSNPROFILE" VALUE="0">
   %x </OBJECT></BODY></HTML>
 }
 
 alias msn.getpp {
-  var %f = " $+ $$sfile($scriptdir $+ *.*,Choose a saved MSN Chatroom webpage) $+ "
+  echo $color(info2) -at *** Auto-updating passport information, please wait...
+
+  var %c $msn.registry(HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Internet Settings\Cache\Paths\\Directory)
+  var %x $findfile(%c,*chatroom_ui*,0,.remove " $+ $1- $+ ")
+
+  echo $color(info2) -at *** Please log in to the MSN Chat window that is now opening, and Vincula will detect your passport info
+  echo $color(info2) -at *** Once the chat page has loaded, you may close the Internet Explorer window
+
+  run iexplore http://chat.msn.com/chatroom.msnw?rm=TheLobby
+
+  .timer.msn.agpp 100 3 msn.agpp %c
+  .timer.msn.agppto 1 300 echo $color(info2) -at *** Automatic passport grabber has timed out, please try again
+}
+
+alias msn.agpp {
+  var %f $findfile($1-,*chatroom_ui*,1)
+  if ($isfile(%f)) {
+    .timer.msn.agpp off
+    .timer.msn.agppto off
+    msn.doppupdate %f
+  }
+  else {
+    return
+  }
+}
+
+alias msn.mgetpp {
+  msn.doppupdate " $+ $$sfile($scriptdir $+ *.*,Choose a file that contains your passport information) $+ "
+}
+
+alias msn.doppupdate {
+  var %f $1-
   unset %msnpass.*
 
   %msnpass.cookie = $gettok($read(%f,w,*MSNREGCookie*),4,34)
   %msnpass.ticket = $gettok($read(%f,w,*PassportTicket*),4,34)
   %msnpass.profile = $gettok($read(%f,w,*PassportProfile*),4,34)
+  %msnx.clsid = $gettok($read(%f,w,*CLSID*),4,34)
 
   if ((%msnpass.cookie != $null) && (%msnpass.ticket != $null) && (%msnpass.profile != $null)) { goto found }
   echo $color(info2) -at *** Passport information was not found or was incomplete in the file $nopath(%f) $+ !
@@ -570,9 +621,10 @@ alias msn.getpp {
 }
 
 alias msn.enchash {
-  var %in � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � - � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � �
+  var %in � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � �
   var %out € ‚ ƒ „ … † ‡ ˆ ‰ Š ‹ Œ Ž ‘ ’ “ ” • – — ˜ ™ š › œ ž Ÿ   ¡ ¢ £ ¤ ¥ ¦ § ¨ © ª « ¬ ­ ® ¯ ° ± ² ³ ´ µ ¶ · ¸ ¹ º » ¼ ½ ¾ ¿ À Á Â Ã Ä Å Æ Ç È É Ê Ë Ì Í Î Ï Ð Ñ Ò Ó Ô Õ Ö × Ø Ù Ú Û Ü Ý Þ ß à á â ã ä å æ ç è é ê ë ì í î ï ð ñ ò ó ô õ ö ÷ ø ù ú û ü ý þ ÿ
   var %l 1
+  if ($hget(msn.enc)) hfree msn.enc
   hmake msn.enc 13
   while (%l <= 123) {
     hadd msn.enc $gettok(%in,%l,32) $gettok(%out,%l,32)
@@ -595,24 +647,24 @@ alias msn.encode {
 
 ;Converts default mIRC color numbers to MSN color codes
 alias msn.mrctomsn {
-  if ($msn.get($cid,frand)) tokenize 32 $rand(0,7)
+  if ($msn.get($2,frand)) tokenize 32 $rand(0,7)
 
   if ($1 == 0) return $chr(1)
-  elseif ($1 == 1)  return $chr(2)
-  elseif ($1 == 2) return $chr(5)
-  elseif ($1 == 3) return $chr(4)
-  elseif ($1 == 4) return $chr(11)
+  elseif ($1 == 1) return $chr(2)
   elseif ($1 == 5) return $chr(3)
-  elseif ($1 == 6) return $chr(7)
+  elseif ($1 == 3) return $chr(4)
+  elseif ($1 == 2) return $chr(5)
   elseif ($1 == 7) return $chr(6)
-  elseif ($1 == 8) return $chr(14)
-  elseif ($1 == 9) return $chr(12)
+  elseif ($1 == 6) return $chr(7)
   elseif ($1 == 10) return $chr(8)
+  elseif ($1 == 15) return $chr(9)
+  elseif ($1 == 4) return $chr(11)
+  elseif ($1 == 9) return $chr(12)
+  elseif ($1 == 8) return $chr(14)
+  elseif ($1 == 13) return $chr(15)
   elseif ($1 == 11) return $chr(16)
   elseif ($1 == 12) return \r
-  elseif ($1 == 13) return $chr(15)
-  elseif ($1 == 14) return $chr(9)
-  elseif ($1 == 15) return $chr(9)
+  elseif ($1 == 14) return \n
   else return $chr(2)
 }
 
@@ -633,6 +685,7 @@ alias msn.msntomrc {
   elseif ($1 == $chr(15)) return 13
   elseif ($1 == $chr(16)) return 11
   elseif ($1 == \r) return 12
+  elseif ($1 == \n) return 14
   else return 1
 }
 
@@ -648,8 +701,8 @@ alias msn.nhtmln {
   window -ph @MSN.Client
   %m = $msn.ndll(attach,$window(@MSN.Client).hwnd)
   if (%m != S_OK) echo Error attaching to window: %m
-  %m = $msn.ndll(navigate, $scriptdir $+ msnchat.html)
-  if (%m != S_OK) echo Error navigating to msnchat.html: %m
+  %m = $msn.ndll(navigate, $scriptdir $+ vincula.html)
+  if (%m != S_OK) echo Error navigating to vincula.html: %m
 }
 
 alias msn.nhtmlnc {
@@ -699,10 +752,8 @@ on *:SOCKREAD:msn.servcon.*: {
       }
     }
 
-    ;Fake Nick Stuff
     elseif ((!$msn.get($sockname,guest)) && ($1- == NICK nick) && ($msn.get($sockname,nick) != $null)) sockwrite -tn $sockname NICK $msn.get($sockname,nick) $+ $lf
 
-    ;  :TK2CHATWBB02 702 >eXonyte :Channel not found
     elseif ($2 == 702) {
       if (%msn.pass. [ $+ [ $right($sock($sockname).mark,-2) ] ] == $null) %msn.pass. [ $+ [ $right($sock($sockname).mark,-2) ] ] = $msn.pass(10)
       %msnc.made = $sock($sockname).mark
@@ -845,18 +896,15 @@ on *:SOCKREAD:msn.mirc.*: {
     elseif ($1 == PRIVMSG) {
       if (:* !iswm $3) {
         if (?#* iswm $2) {
-          if ($msn.get($sockname,encode)) sockwrite -tn msn.server. $+ $gettok($sockname,3,46) $1 $2 :S $msn.mrctomsn($msn.get($sockname,fcolor)) $+ $chr($msn.get($sockname,fstyle)) $+ $msn.get($sockname,fname) $+ ;0 $msn.encode($right($3-,-1)) $+ 
-          else sockwrite -tn msn.server. $+ $gettok($sockname,3,46) $1 $2 :S $msn.mrctomsn($msn.get($sockname,fcolor)) $+ $chr($msn.get($sockname,fstyle)) $+ $msn.get($sockname,fname) $+ ;0 $right($3-,-1) $+ 
+          sockwrite -tn msn.server. $+ $gettok($sockname,3,46) $1 $2 :S $msn.mrctomsn($msn.get($sockname,fcolor),$gettok($sockname,3,46)) $+ $chr($msn.get($sockname,fstyle)) $+ $msn.get($sockname,fname) $+ ;0 $right($3-,-1) $+ 
         }
         else {
-          if ($msn.get($sockname,encode)) sockwrite -tn msn.server. $+ $gettok($sockname,3,46) WHISPER $sock($sockname).mark $2 :S $msn.mrctomsn($msn.get($sockname,fcolor)) $+ $chr($msn.get($sockname,fstyle)) $+ $msn.get($sockname,fname) $+ ;0 $msn.encode($right($3-,-1)) $+ 
-          else sockwrite -tn msn.server. $+ $gettok($sockname,3,46) WHISPER $sock($sockname).mark $2 :S $msn.mrctomsn($msn.get($sockname,fcolor)) $+ $chr($msn.get($sockname,fstyle)) $+ $msn.get($sockname,fname) $+ ;0 $right($3-,-1) $+ 
+          sockwrite -tn msn.server. $+ $gettok($sockname,3,46) WHISPER $sock($sockname).mark $2 :S $msn.mrctomsn($msn.get($sockname,fcolor),$gettok($sockname,3,46)) $+ $chr($msn.get($sockname,fstyle)) $+ $msn.get($sockname,fname) $+ ;0 $right($3-,-1) $+ 
         }
       }
       else {
         if (:ACTION == $3) {
-          if ($msn.get($sockname,encode)) sockwrite -tn msn.server. $+ $gettok($sockname,3,46) $1 $2 $3 $msn.encode($left($4-,-1)) $+ 
-          else sockwrite -tn msn.server. $+ $gettok($sockname,3,46) $1 $2 $3 $left($4-,-1) $+ 
+          sockwrite -tn msn.server. $+ $gettok($sockname,3,46) $1 $2 $3 $left($4-,-1) $+ 
         }
         else sockwrite -tn msn.server. $+ $gettok($sockname,3,46) $1-
       }
@@ -864,12 +912,10 @@ on *:SOCKREAD:msn.mirc.*: {
     elseif ($1 == NOTICE) {
       if (:* !iswm $3) {
         if (?#* !iswm $2) {
-          if ($msn.get($sockname,encode)) sockwrite -tn msn.server. $+ $gettok($sockname,3,46) PRIVMSG $2 :S $msn.mrctomsn($msn.get($sockname,fcolor)) $+ $chr($msn.get($sockname,fstyle)) $+ $msn.get($sockname,fname) $+ ;0 $msn.encode($right($3-,-1)) $+ 
-          else sockwrite -tn msn.server. $+ $gettok($sockname,3,46) PRIVMSG $2 :S $msn.mrctomsn($msn.get($sockname,fcolor)) $+ $chr($msn.get($sockname,fstyle)) $+ $msn.get($sockname,fname) $+ ;0 $right($3-,-1) $+ 
+          sockwrite -tn msn.server. $+ $gettok($sockname,3,46) PRIVMSG $2 :S $msn.mrctomsn($msn.get($sockname,fcolor),$gettok($sockname,3,46)) $+ $chr($msn.get($sockname,fstyle)) $+ $msn.get($sockname,fname) $+ ;0 $right($3-,-1) $+ 
         }
         else {
-          if ($msn.get($sockname,encode)) sockwrite -tn msn.server. $+ $gettok($sockname,3,46) NOTICE $2 :S $msn.mrctomsn($msn.get($sockname,fcolor)) $+ $chr($msn.get($sockname,fstyle)) $+ $msn.get($sockname,fname) $+ ;0 $msn.encode($right($3-,-1)) $+ 
-          else sockwrite -tn msn.server. $+ $gettok($sockname,3,46) NOTICE $2 :S $msn.mrctomsn($msn.get($sockname,fcolor)) $+ $chr($msn.get($sockname,fstyle)) $+ $msn.get($sockname,fname) $+ ;0 $right($3-,-1) $+ 
+          sockwrite -tn msn.server. $+ $gettok($sockname,3,46) NOTICE $2 :S $msn.mrctomsn($msn.get($sockname,fcolor),$gettok($sockname,3,46)) $+ $chr($msn.get($sockname,fstyle)) $+ $msn.get($sockname,fname) $+ ;0 $right($3-,-1) $+ 
         }
       }
       else sockwrite -tn msn.server. $+ $gettok($sockname,3,46) $1-
@@ -923,31 +969,30 @@ on *:SOCKREAD:msn.server.*: {
     if ($msn.get($sockname,domirc)) {
 
       if ($2 == PRIVMSG) {
-
         if ($4 == :S) {
           if (?#* !iswm $3) sockwrite -tn msn.mirc. $+ $gettok($sockname,3,46) $1 NOTICE $3 : $+ $remove($6-,$chr(1))
           else {
-            var %color $left($5,1), %bold $mid($5,2,1)
+            var %color $left($5,1), %style $mid($5,2,1)
             if (%color == \) {
-              %color = \r
-              %bold = $mid($5,3,1)
+              %color = $left($5,2)
+              %style = $mid($5,3,1)
             }
             %color = $base($msn.msntomrc(%color),10,10,2)
 
-            if (($msn.get($sockname,docolor)) && ((%bold == $chr(2)) || (%bold == $chr(4)))) %bold = 
-            elseif (($msn.get($sockname,docolor)) && ((%bold == $chr(6)) || (%bold == $chr(8)))) %bold = 
-            elseif (($msn.get($sockname,docolor)) && ((%bold == $chr(5)) || (%bold == $chr(7)))) %bold = 
-            else unset %bold
+            if (($msn.get($sockname,docolor)) && ((%style == $chr(2)) || (%style == $chr(4)))) %style = 
+            elseif (($msn.get($sockname,docolor)) && ((%style == $chr(6)) || (%style == $chr(8)))) %style = 
+            elseif (($msn.get($sockname,docolor)) && ((%style == $chr(5)) || (%style == $chr(7)))) %style = 
+            else unset %style
 
             if (%color == $color(background)) %color = %color(normal)
-            sockwrite -tn msn.mirc. $+ $gettok($sockname,3,46) $1 $2 $3 : $+ $iif($msn.get($sockname,docolor), $+ %color) $+ %bold $+ $left($6-,-1)
+            sockwrite -tn msn.mirc. $+ $gettok($sockname,3,46) $1 $2 $3 : $+ $iif($msn.get($sockname,docolor), $+ %color) $+ %style $+ $left($6-,-1)
           }
         }
 
         elseif (:* iswm $4) {
           if (:VERSION* iswm $4) {
-            sockwrite -tn msn.server. $+ $gettok($sockname,3,46) NOTICE $right($gettok($1,1,33),-1) :VERSION Vincula v3.4, by eXonyte (mIRC $version on Win $+ $os $+ )
-            scid $gettok($sockname,3,46) echo $color(ctcp) -t $msn.get($cid,room) [[ $+ $right($gettok($1,1,33),-1) VERSION]
+            sockwrite -tn msn.server. $+ $gettok($sockname,3,46) NOTICE $right($gettok($1,1,33),-1) :VERSION Vincula v3.5, by eXonyte (mIRC $version on Win $+ $os $+ )
+            scid $gettok($sockname,3,46) echo $color(ctcp) -t $!msn.get( $gettok($sockname,3,46) ,room) [[ $+ $right($gettok($1,1,33),-1) VERSION]
           }
           else sockwrite -tn msn.mirc. $+ $gettok($sockname,3,46) $1-
         }
@@ -960,14 +1005,6 @@ on *:SOCKREAD:msn.server.*: {
           else sockwrite -tn msn.mirc. $+ $gettok($sockname,3,46) $1-
         }
       }
-
-      ; :TK2CHATCHATA08 353 eXonyte = %#Christian :H,U,P,+†°§ŵ££†_Ģû®L°† H,U,P,+bchelmo H,U,P,@Loner7 H,U,P,+angel_of_victory G,U,R,@FaithKeep
-      ; :TK2CHATCHATA08 353 eXonyte = %#Christian :G,U,G,+>logos3 H,U,P,+¤Shadow… G,U,P,+attitudepc H,U,R,@XBible G,U,P,+eXonyte H,U,P,.iSpy·
-
-      ;Away ? ?
-      ; G  ,U,P,+eXonyte
-      ; H  ,U,P,.iSpy·
-      ; H  ,U,R,@XBible
 
       elseif ($2 == 353) {
         var %nam = $right($6-,-1), %res, %nlp 1
@@ -997,7 +1034,6 @@ on *:SOCKREAD:msn.server.*: {
         }
       }
 
-      ;  :>eXo!blah@GateKeeper JOIN H,U,G,+ :%#Christian
       elseif ($2 == JOIN) {
         if (:%#* iswm $4) {
           sockwrite -tn msn.mirc. $+ $gettok($sockname,3,46) $1 $2 $4-
@@ -1013,7 +1049,6 @@ on *:SOCKREAD:msn.server.*: {
           elseif ($gettok($3,4,44) == .) %msnx.setmymode = $1 MODE $right($4,-1) +q $right($gettok($1,1,33),-1)
         }
 
-        ;  :eXonyte!4A63C43D06D38CB7@GateKeeperPassport JOIN H,U,P,. :%#Z-eXonyte
         else {
           if ($gettok($3,4,44) == +) sockwrite -tn msn.mirc. $+ $gettok($sockname,3,46) $1 MODE $right($4,-1) +v $right($gettok($1,1,33),-1)
           elseif ($gettok($3,4,44) == @) sockwrite -tn msn.mirc. $+ $gettok($sockname,3,46) $1 MODE $right($4,-1) +o $right($gettok($1,1,33),-1)
@@ -1027,14 +1062,14 @@ on *:SOCKREAD:msn.server.*: {
 
       elseif ($2 == WHISPER) {
         if ($5 == :S) {
-          var %color $left($6,1), %bold $mid($6,2,1)
+          var %color $left($6,1), %style $mid($6,2,1)
           if (%color == \) {
             %color = \r
-            %bold = $mid($6,3,1)
+            %style = $mid($6,3,1)
           }
           %color = $base($msn.msntomrc(%color),10,10,2)
 
-          if (%bold != ) unset %bold
+          if (%style != ) unset %style
           if (%color == $color(background)) %color = %color(normal)
 
           sockwrite -tn msn.mirc. $+ $gettok($sockname,3,46) $1 PRIVMSG $me : $+ $iif($msn.get($sockname,docolor), $+ %color) $+ $left($7-,-1)
@@ -1206,7 +1241,7 @@ raw 421:*NOOP*: haltdef
 ctcp *:TIME:*: {
   if ($sock(msn.*. $+ $cid,0) >= 2) {
     echo $color(ctcp) -t $msn.get($cid,room) [[ $+ $nick TIME]
-    ctcpreply $nick TIME $asctime(m/dd/yyyy $+ $chr(44) h:nn:ss TT)
+    .ctcpreply $nick TIME $asctime(m/dd/yyyy $+ $chr(44) h:nn:ss TT)
     haltdef
   }
 }
@@ -1214,7 +1249,7 @@ ctcp *:TIME:*: {
 on *:CTCPREPLY:�DT�E: {
   if (($sock(msn.*. $+ $cid,0) >= 2) && ($2- == $null)) {
     echo $color(ctcp) -t $msn.get($cid,room) [[ $+ $nick �DT�E]
-    ctcpreply $nick �DT�E Vincula v3.4, by eXonyte (mIRC $version on Win $+ $os $+ )
+    .ctcpreply $nick �DT�E Vincula v3.5, by eXonyte (mIRC $version on Win $+ $os $+ )
     haltdef
   }
 }
@@ -1249,13 +1284,18 @@ alias -l msn.pop.s {
 
 
 menu nicklist {
-  $iif($sock(msn.*. $+ $cid,0) != 2,$style(2)) $+ Vincula
+  $iif($sock(msn.*. $+ $cid,0) == 2,Vincula)
   . $+ $msn.decode($$1)
   .. $+ $1 $+ :echo $color(info2) -at *** Decoded: $msn.decode($$1) / Undecoded: $$1 | clipboard $msn.decode($$1)
   .. $+ $address($1,6) $+ :echo $color(info2) -at *** Address:  $address($$1,6)
+  ..-
+  ..$iif($me !isowner $chan,$style(2)) $+ Add to access as Owner: access $chan add owner $address($$1,6)
+  ..$iif($me !isop $chan,$style(2)) $+ Add to access as Host: access $chan add host $address($$1,6)
+  ..$iif($me !isop $chan,$style(2)) $+ Add to access as Participant: access $chan add voice $address($$1,6)
+  ..$iif($me !isop $chan,$style(2)) $+ Add to access as Grant: access $chan add grant $address($$1,6)
   .Check IRCDom Version:ctcpreply $$1 �DT�E
-  . $+ $iif(>* iswm $1,$style(2)) View Profile: PROP $$1 MSNPROFILE
-  . $+ $iif(>* iswm $1,$style(2)) Force View Profile: PROP $$1 PUID
+  . $+ $iif(>* iswm $1,$style(2)) View Profile: PROP $$1 PUID
+  . $+ $iif(>* iswm $1,$style(2)) View Profile Type: PROP $$1 MSNPROFILE
   .-
   .$msn.pop.o($1,$chan) $+ Owner:mode $chan +q $$1
   .$msn.pop.h($1,$chan) $+ Host:mode $chan +o $$1
@@ -1263,26 +1303,27 @@ menu nicklist {
   .$msn.pop.s($1,$chan) $+ Spectator:mode $chan -ov $$1 $$1
   .-
   .Kick and Ban
-  ..15 Minutes: access $chan add deny $address($$1,1) 15 : $+ $$1 - $input(Enter a kick message $+ $chr(44) or leave blank for none:,129,Kick Message) | kick $chan $1 15 Minute Ban $+ $iif($! != $null,: $!)
-  ..1 Hour: access $chan add deny $address($$1,1) 60 : $+ $$1 - $input(Enter a kick message $+ $chr(44) or leave blank for none:,129,Kick Message) | kick $chan $1 1 Hour Ban $+ $iif($! != $null,: $!)
-  ..24 Hours: access $chan add deny $address($$1,1) 1440 : $+ $$1 - $input(Enter a kick message $+ $chr(44) or leave blank for none:,129,Kick Message) | kick $chan $1 24 Hour Ban $+ $iif($! != $null,: $!)
-  ..Infinite: access $chan add deny $address($$1,1) 0 : $+ $$1 - $input(Enter a kick message $+ $chr(44) or leave blank for none:,129,Kick Message) | kick $chan $1 Infinite Ban $+ $iif($! != $null,: $!)
+  ..15 Minutes...: access $chan add deny $address($$1,1) 15 : $+ $$1 - $input(Enter a kick message $+ $chr(44) or leave blank for none:,129,Kick Message) | kick $chan $1 15 Minute Ban $+ $iif($! != $null,: $!)
+  ..1 Hour...: access $chan add deny $address($$1,1) 60 : $+ $$1 - $input(Enter a kick message $+ $chr(44) or leave blank for none:,129,Kick Message) | kick $chan $1 1 Hour Ban $+ $iif($! != $null,: $!)
+  ..24 Hours...: access $chan add deny $address($$1,1) 1440 : $+ $$1 - $input(Enter a kick message $+ $chr(44) or leave blank for none:,129,Kick Message) | kick $chan $1 24 Hour Ban $+ $iif($! != $null,: $!)
+  ..Infinite...: access $chan add deny $address($$1,1) 0 : $+ $$1 - $input(Enter a kick message $+ $chr(44) or leave blank for none:,129,Kick Message) | kick $chan $1 Infinite Ban $+ $iif($! != $null,: $!)
   ..-
-  ..How long?: access $chan add deny $address($$1,1) $$input(How long in minutes would you like to ban for?,129,Ban length) | kick $chan $1 $! Minute Ban
+  ..How long?...: access $chan add deny $address($$1,1) $$input(How long in minutes would you like to ban for?,129,Ban length) | kick $chan $1 $! Minute Ban
 }
 
 menu channel {
-  $iif($sock(msn.*. $+ $cid,0) != 2,$style(2)) $+ Vincula
+  $iif($sock(msn.*. $+ $cid,0) == 2,Vincula)
   .Get the room's URL:msn.geturl $chan
   .$iif($msn.roompass($chan) == $null,$style(2) $+ Current Ownerkey is unknown,Stored Ownerkey $+ $chr(58) $msn.roompass($chan)) :msn.getpass $chan
+  .Access List...:access
   .-
-  .Change Welcome Message:prop $chan onjoin : $+ $$input(Enter the welcome message:,129,Change Welcome Message)
+  .Change Welcome Message...:prop $chan onjoin : $+ $$input(Enter the welcome message:,129,Change Welcome Message)
   .Unset Welcome Message:prop $chan onjoin :
   .-
-  .Change Gold Key:prop $chan ownerkey $$input(Enter the new gold $chr(40) $+ owner $+ $chr(41) key:,129,Change Gold Key)
+  .Change Gold Key...:prop $chan ownerkey $$input(Enter the new gold $chr(40) $+ owner $+ $chr(41) key:,129,Change Gold Key)
   .Unset Gold Key:prop $chan ownerkey :
   .-
-  .Change Brown Key:prop $chan hostkey $$input(Enter the new brown $chr(40) $+ host $+ $chr(41) key:,129,Change Brown Key)
+  .Change Brown Key...:prop $chan hostkey $$input(Enter the new brown $chr(40) $+ host $+ $chr(41) key:,129,Change Brown Key)
   .Unset Brown Key:prop $chan hostkey :
   .-
   .$iif(u isin $gettok($chan($chan).mode,1,32),$style(1)) $+ Knock Mode: mode $chan $iif(u isin $gettok($chan($chan).mode,1,32),-,+) $+ u
@@ -1297,39 +1338,42 @@ menu channel {
 
 menu menubar,status {
   Vincula
-  .Update Passport information...:msn.getpp
   .Change Vincula settings...:msn.setup
   .Current Userdata1 key $+ $chr(58) $msn.ud1 : echo $color(info2) -at *** Current Userdata1 key: $msn.ud1 | clipboard $msn.ud1
+  .-
+  .Update Passport information (Auto)...:msn.getpp
+  .Update Passport information (Manual)...:msn.mgetpp
+  .Edit Passport information...:msn.editpp
   .-
   .Join Room
   ..Normal...:joins $$input(Enter a room name $chr(40) $+ Only normal ASCII characters allowed $+ $chr(41),129,Enter Roomname)
   ..IRC name...:msn $$input(Enter a room name in IRC format $chr(40) $+ $chr(37) $+ #room\bname $+ $chr(41),129,Enter Roomname)
   ..Hex name...:joinhex $$input(Enter a room's hex name $chr(40) $+ rhx $+ $chr(41),129,Enter Hex Roomname)
-  ..URL...:joinurl $$input(Enter a room's hex name $chr(40) $+ rhx $+ $chr(41),129,Enter Hex Roomname)
+  ..URL...:joinurl $$input(Enter a room's URL,129,Enter Room URL)
 
   .Join Room (password)
   ..Normal...:joins $$input(Enter a room name $chr(40) $+ Only normal ASCII characters allowed $+ $chr(41),129,Enter Roomname)
   ..IRC name...:msn $$input(Enter a room name in IRC format $chr(40) $+ $chr(37) $+ #room\bname $+ $chr(41),129,Enter Roomname) $input(Enter a password for the room,130,Enter password)
   ..Hex name...:joinhex $$input(Enter a room's hex name $chr(40) $+ rhx $+ $chr(41),129,Enter Hex Roomname) $input(Enter a password for the room,130,Enter password)
-  ..URL...:joinurl $$input(Enter a room's hex name $chr(40) $+ rhx $+ $chr(41),129,Enter Hex Roomname) $input(Enter a password for the room,130,Enter password)
+  ..URL...:joinurl $$input(Enter a room's URL,129,Enter Room URL) $input(Enter a password for the room,130,Enter password)
 
   .Join Room (Guest)
   ..Normal...:joins -g $$input(Enter a room name $chr(40) $+ Only normal ASCII characters allowed $+ $chr(41),129,Enter Roomname)
   ..IRC name...:msn -g $$input(Enter a room name in IRC format $chr(40) $+ $chr(37) $+ #room\bname $+ $chr(41),129,Enter Roomname)
   ..Hex name...:joinhex -g $$input(Enter a room's hex name $chr(40) $+ rhx $+ $chr(41),129,Enter Hex Roomname)
-  ..URL...:joinurl -g $$input(Enter a room's hex name $chr(40) $+ rhx $+ $chr(41),129,Enter Hex Roomname)
+  ..URL...:joinurl -g $$input(Enter a room's URL,129,Enter Room URL)
 
   .Join Room (Guest, password)
   ..Normal...:joins -gk $$input(Enter a password for the room,130,Enter password) $$input(Enter a room name $chr(40) $+ Only normal ASCII characters allowed $+ $chr(41),129,Enter Roomname)
   ..IRC name...:msn -g $$input(Enter a room name in IRC format $chr(40) $+ $chr(37) $+ #room\bname $+ $chr(41),129,Enter Roomname) $input(Enter a password for the room,130,Enter password)
   ..Hex name...:joinhex -g $$input(Enter a room's hex name $chr(40) $+ rhx $+ $chr(41),129,Enter Hex Roomname) $input(Enter a password for the room,130,Enter password)
-  ..URL...:joinurl -g $$input(Enter a room's hex name $chr(40) $+ rhx $+ $chr(41),129,Enter Hex Roomname) $input(Enter a password for the room,130,Enter password)
+  ..URL...:joinurl -g $$input(Enter a room's URL,129,Enter Room URL) $input(Enter a password for the room,130,Enter password)
 
   .Join Room (Community)
   ..Normal...:joins -c $$input(Enter a room name $chr(40) $+ Only normal ASCII characters allowed $+ $chr(41),129,Enter Roomname)
   ..IRC name...:msn -c $$input(Enter a room name in IRC format $chr(40) $+ $chr(37) $+ #room\bname $+ $chr(41),129,Enter Roomname)
   ..Hex name...:joinhex -c $$input(Enter a room's hex name $chr(40) $+ rhx $+ $chr(41),129,Enter Hex Roomname)
-  ..URL...:joinurl -c $$input(Enter a room's hex name $chr(40) $+ rhx $+ $chr(41),129,Enter Hex Roomname)
+  ..URL...:joinurl -c $$input(Enter a room's URL,129,Enter Room URL)
 }
 
 ;--- Font changing dialog
@@ -1344,7 +1388,7 @@ dialog msn.setup {
 
   box "", 90, 2 0 146 51
   text "Font name:", 10, 3 8 29 7, right
-  combo 20, 33 6 112 70, edit drop
+  combo 20, 33 6 112 70, edit drop sort
 
   text "Font style:", 11, 3 20 29 7, right
   check "Bold", 71, 33 20 20 7
@@ -1353,74 +1397,103 @@ dialog msn.setup {
 
   text "Font color:", 12, 73 20 29 7, right
   combo 21, 103 19 42 130, drop
-  check "Random", 31, 103 31 30 11
+  check "Random", 31, 103 33 30 7
 
   box "", 91, 2 47 73 38
-  check "Show profile icon", 32, 5 51 60 11
-  check "Decode incoming text", 33, 5 61 60 11
-  check "Show users' colors", 34, 5 71 60 11
+  check "Decode incoming text", 33, 5 53 60 7
+  check "Show users' colors", 34, 5 63 60 7
+  combo 32, 5 71 67 60, drop
 
   box "", 92, 74 47 74 38
-  check "Auto password usage", 35, 77 51 65 11
-  check "Encode outgoing text", 36, 77 61 65 11
+  check "Auto password usage", 35, 77 53 65 7
+  check "Encode outgoing text", 36, 77 63 65 7
 
   button "OK", 100, 65 88 40 12, ok default
   button "Cancel", 101, 108 88 40 12, cancel
+  button "Refresh Passport", 102, 2 88 50 12
 }
 
 on *:DIALOG:msn.setup*:init:*: {
-  var %l 1
+  var %l 1, %d did -a $dname, %c did -c $dname
   while ($hget(msn.fonts,%l) != $null) {
-    did -a $dname 20 $hget(msn.fonts,%l)
+    %d 20 $hget(msn.fonts,%l)
     inc %l
   }
 
-  did -a $dname 21 Black
-  did -a $dname 21 White
-  did -a $dname 21 Dark Blue
-  did -a $dname 21 Dark Green
-  did -a $dname 21 Red
-  did -a $dname 21 Dark Red
-  did -a $dname 21 Purple
-  did -a $dname 21 Dark Yellow
-  did -a $dname 21 Yellow
-  did -a $dname 21 Green
-  did -a $dname 21 Teal
-  did -a $dname 21 Cyan
-  did -a $dname 21 Blue
-  did -a $dname 21 Pink
-  did -a $dname 21 Dark Gray
-  did -a $dname 21 Gray
+  %d 21 Black
+  %d 21 White
+  %d 21 Dark Blue
+  %d 21 Dark Green
+  %d 21 Red
+  %d 21 Dark Red
+  %d 21 Purple
+  %d 21 Dark Yellow
+  %d 21 Yellow
+  %d 21 Green
+  %d 21 Teal
+  %d 21 Cyan
+  %d 21 Blue
+  %d 21 Pink
+  %d 21 Dark Gray
+  %d 21 Gray
+
+  %d 32 No Profile
+  %d 32 Profile
+  %d 32 Male
+  %d 32 Female
+  %d 32 No Gender + Picture
+  %d 32 Male + Picture
+  %d 32 Female + Picture
 
   if ($sock(*. $+ $gettok($dname,3,46),0) >= 1) {
     did -i $dname 20 0 $replace($msn.get($dname,fname),\b,$chr(32))
-    did -c $dname 21 $calc($msn.get($dname,fcolor) + 1)
+    %c 21 $calc($msn.get($dname,fcolor) + 1)
     var %f $calc($msn.get($dname,fstyle) - 1)
-    if ($isbit(%f,1)) did -c $dname 71
-    if ($isbit(%f,2)) did -c $dname 72
-    if ($isbit(%f,3)) did -c $dname 73
-    if ($msn.get($dname,frand)) did -c $dname 31
-    if (%msnx.showprof) did -c $dname 32
-    if ($msn.get($dname,decode)) did -c $dname 33
-    if ($msn.get($dname,docolor)) did -c $dname 34
-    if (%msnx.usepass) did -c $dname 35
-    if ($msn.get($dname,encode)) did -c $dname 36
+    if ($msn.get($dname,frand)) {
+      %c 31
+      did -b $dname 21
+    }
+    if ($msn.get($dname,decode)) %c 33
+    if ($msn.get($dname,docolor)) %c 34
+    if ($msn.get($dname,encode)) %c 36
   }
 
   else {
     did -i $dname 20 0 $replace(%msnf.font,\b,$chr(32))
-    did -c $dname 21 $calc(%msnf.fcolor + 1)
+    %c 21 $calc(%msnf.fcolor + 1)
     var %f $calc(%msnf.fstyle - 1)
-    if ($isbit(%f,1)) did -c $dname 71
-    if ($isbit(%f,2)) did -c $dname 72
-    if ($isbit(%f,3)) did -c $dname 73
-    if (%msnf.rand) did -c $dname 31
-    if (%msnx.showprof) did -c $dname 32
-    if (%msnx.decode) did -c $dname 33
-    if (%msnx.docolor) did -c $dname 34
-    if (%msnx.usepass) did -c $dname 35
-    if (%msnx.encode) did -c $dname 36
+    if (%msnf.rand) {
+      %c 31
+      did -b $dname 21
+    }
+    if (%msnx.decode) %c 33
+    if (%msnx.docolor) %c 34
+    if (%msnx.encode) %c 36
   }
+
+  if (%msnx.showprof == 0) %c 32 1
+  elseif (%msnx.showprof == 1) %c 32 2
+  elseif (%msnx.showprof == 3) %c 32 3
+  elseif (%msnx.showprof == 5) %c 32 4
+  elseif (%msnx.showprof == 9) %c 32 5
+  elseif (%msnx.showprof == 11) %c 32 6
+  elseif (%msnx.showprof == 13) %c 32 7
+  else %c 32 1
+
+  if (%msnx.usepass) %c 35
+  if ($isbit(%f,1)) %c 71
+  if ($isbit(%f,2)) %c 72
+  if ($isbit(%f,3)) %c 73
+}
+
+on *:DIALOG:msn.setup*:sclick:31: {
+  if ($did(31).state) did -b $dname 21
+  else did -e $dname 21
+}
+
+on *:DIALOG:msn.setup*:sclick:102: {
+  dialog -k $dname
+  msn.getpp
 }
 
 on *:DIALOG:msn.setup*:sclick:100: {
@@ -1450,8 +1523,13 @@ on *:DIALOG:msn.setup*:sclick:100: {
   if ($did($dname,73).state) %msnf.fstyle = $calc(%msnf.fstyle + 4)
   if ($did($dname,31).state) %msnf.rand = $true
   else unset %msnf.rand
-  if ($did($dname,32).state) %msnx.showprof = $true
-  else unset %msnx.showprof
+  if ($did(32).sel == 1) %msnx.showprof = 0
+  elseif ($did(32).sel == 2) %msnx.showprof = 1
+  elseif ($did(32).sel == 3) %msnx.showprof = 3
+  elseif ($did(32).sel == 4) %msnx.showprof = 5
+  elseif ($did(32).sel == 5) %msnx.showprof = 9
+  elseif ($did(32).sel == 6) %msnx.showprof = 11
+  elseif ($did(32).sel == 7) %msnx.showprof = 13
   if ($did($dname,33).state) %msnx.decode = $true
   else unset %msnx.decode
   if ($did($dname,34).state) %msnx.docolor = $true
@@ -1460,6 +1538,72 @@ on *:DIALOG:msn.setup*:sclick:100: {
   else unset %msnx.usepass
   if ($did($dname,36).state) %msnx.encode = $true
   else unset %msnx.encode
+}
+
+alias msn.updatefonts {
+  var %d $gettok($msn.registry(HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\\MediaPath),1-2,92) $+ \Fonts
+  if (!$isdir(%d)) %d = " $+ $$sdir(C:\,Please choose your font folder $chr(40) $+ usually C:\Windows\Fonts $+ $chr(41)) $+ "
+  echo $color(info2) -ta *** Scanning available Truetype fonts in %d $+ , please wait...
+  if ($hget(msn.fonts)) hfree msn.fonts
+  hmake msn.fonts 30
+  %msnf.fontnum = 1
+  var %x $findfile(%d,*.ttf,0,msn.upfont " $+ $1- $+ ")
+  hsave -o msn.fonts $+(",$scriptdir,vfcache.dat")
+  echo $color(info2) -ta *** Found %x Truetype fonts, names cached for future reference
+  unset %msnf.fontnum
+}
+
+alias msn.upfont {
+  var %x $msn.truetype($1-).name
+  if ((%x != $null) && ($hmatch(msn.fonts,%x,0).data == 0)) {
+    hadd msn.fonts %msnf.fontnum %x
+    inc %msnf.fontnum
+  }
+}
+
+;This Font Reading stuff obtained from mircscripts.org and was submitted
+;by Kamek.  Thanks Kamek, you da man :)
+;URL: http://www.mircscripts.org/comments.php?id=1341
+alias msn.truetype {
+  if (!$isfile($1)) { return }
+  var %fn = $iif(("*" iswm $1), $1, $+(", $1, ")), %ntables, %i = 1, %p, %namepos, %namelen, %nid = 1
+  if ($findtok(copyright family subfamily id fullname version postscript trademark manufacturer designer - urlvendor urldesigner, $prop, 32)) { %nid = $calc($ifmatch - 1) }
+  bread %fn 0 8192 &font
+  if ($bvar(&font, 1, 4) != 0 1 0 0) { return }
+  %ntables = $bvar(&font, 5).nword
+  while (%i <= %ntables) {
+    %p = $calc(13 + (%i - 1) * 16)
+    if (%p > 8192) { return }
+    if ($bvar(&font, %p, 4).text === name) { %namepos = $bvar(&font, $calc(%p + 8)).nlong | %namelen = $bvar(&font, $calc(%p + 12)).nlong | break }
+    inc %i
+  }
+  if (!%namepos) { return }
+  if (%namelen > 8192) { %namelen = 8192 }
+
+  bread %fn %namepos %namelen &font
+  var %nrecs = $bvar(&font, 3).nword, %storepos = $calc(%namepos + $bvar(&font, 5).nword), %i = 1
+  while (%i <= %nrecs) {
+    %p = $calc(7 + (%i - 1) * 12)
+    if ($bvar(&font, %p).nword = 3) && ($bvar(&font, $calc(%p + 6)).nword = %nid) {
+      var %len = $bvar(&font, $calc(%p + 8)).nword, %peid = $bvar(&font, $calc(%p + 2)).nword
+      bread %fn $calc(%storepos + $bvar(&font, $calc(%p + 10)).nword) %len &font
+      return $msn.uni2ansi($bvar(&font, 1, %len))
+    }
+    inc %i
+  }
+}
+
+; unicode -> ansi simple converter
+alias -l msn.uni2ansi {
+  var %unicode = $1, %i = 1, %t = $numtok(%unicode, 32), %s = i, %c
+  while (%i <= %t) {
+    %c = $gettok(%unicode, $+(%i, -, $calc(%i + 2)), 32)
+    if ($gettok(%c, 1, 32) = 0) { %c = $chr($gettok(%c, 2, 32)) }
+    else { %c = ? }
+    %s = $left(%s, -1) $+ %c $+ i
+    inc %i 2
+  }
+  return $left(%s, -1)
 }
 
 ;--- Room creation dialog
@@ -1490,7 +1634,7 @@ dialog msn.room {
   text "User Limit:", 16, 2 64 30 7, right
   edit "50", 26, 35 62 113 11
 
-  check "Enable Profanity Filter", 1, 35 73 113 11
+  check "Enable Profanity Filter", 1, 35 75 113 7
 
   button "OK", 99, 33 85 40 12, ok
   button "Cancel", 98, 78 85 40 12, cancel
@@ -1596,67 +1740,264 @@ on *:DIALOG:msn.name:sclick:99: {
   %msnx.unicodenick = $did($dname,3).state
 }
 
-alias msn.updatefonts {
-  var %d " $+ $$sdir(C:\,Please choose your font folder $chr(40) $+ usually C:\Windows\Fonts $+ $chr(41)) $+ "
-  echo $color(info2) -ta *** Scanning available Truetype fonts, please wait...
-  if ($hget(msn.fonts)) hfree msn.fonts
-  hmake msn.fonts 30
-  %msnf.fontnum = 1
-  var %x $findfile(%d,*.ttf,0,msn.upfont " $+ $1- $+ ")
-  hsave -o msn.fonts $+(",$scriptdir,vfcache.dat")
-  echo $color(info2) -ta *** Found %x Truetype fonts, names cached for future reference
-  unset %msnf.fontnum
+;--- Access list
+alias access {
+  if ($1- == $null) dialog -m msn.access. $+ $cid msn.access
+  else access $1-
 }
 
-alias msn.upfont {
-  var %x $msn.truetype($1-).name
-  if ((%x != $null) && ($hmatch(msn.fonts,%x,0).data == 0)) {
-    hadd msn.fonts %msnf.fontnum %x
-    inc %msnf.fontnum
+dialog msn.access {
+  title Access List for...
+  icon $mircexe , 5
+  size -1 -1 246 137
+  option dbu
+
+  list 1, 1 2 200 60, vsbar hsbar disable
+
+  box "Info", 2, 1 58 200 77
+  text "Placed by:", 3, 5 66 40 7, right
+  edit "", 4, 48 64 150 11, read autohs
+  text "Remaining Time:", 5, 5 78 40 7, right
+  edit "", 6, 48 76 25 11, read autohs
+  text "minutes", 7, 75 78 150 7
+  text "Reason:", 8, 5 90 40 7, right
+  edit "", 9, 48 88 150 31, read multi autovs
+  text "Access Mask:", 10, 5 122 40 7, right
+  edit "", 11, 48 120 150 11, read autohs
+
+  button "Add Entry", 12, 203 2 40 12, disable
+  button "Delete Entry", 13, 203 16 40 12, disable
+  button "Clear List", 14, 203 30 40 12, disable
+  button "Refresh List", 15, 203 44 40 12
+
+  button "Export List...", 16, 203 80 40 12
+  button "Import List...", 17, 203 94 40 12, disable
+
+  button "Done", 99, 203 122 40 12, cancel default
+}
+
+on *:DIALOG:msn.access*:init:*: {
+  dialog -t $dname Access List for $msn.get($gettok($dname,3,46),room)
+  did -a $dname 1 Retrieving Access list...
+  if ($me isop $msn.get($gettok($dname,3,46),room)) {
+    did -e $dname 12,13,14,17
+  }
+  if ($hget($dname)) hfree $dname
+  hmake $dname 2
+  hadd $dname num 1
+  access $msn.get($gettok($dname,3,46),room)
+}
+
+on *:DIALOG:msn.access*:sclick:1: {
+  tokenize 32 $hget($dname,$did(1).sel)
+  if ($gettok($ial(*! $+ $4,1),1,33)) did -ra $dname 4 $msn.decode($gettok($ial(*! $+ $4,1),1,33)) ( $+ $4 $+ )
+  else did -ra $dname 4 $4
+
+  did -ra $dname 6 $3
+  did -ra $dname 9 $msn.decode($5-)
+  did -ra $dname 11 $2
+}
+
+on *:DIALOG:msn.access*:sclick:12: {
+  msn.addacc
+}
+
+on *:DIALOG:msn.access*:sclick:13: {
+  if ($did(1,$did(1).sel) != $null) {
+    access $msn.get($cid,room) delete $did(1).seltext
+    access $msn.get($cid,room)
+    did -ra $dname 1 Retrieving Access list...
   }
 }
 
-;This Font Reading stuff obtained from mircscripts.org and was submitted
-;by Kamek.  Thanks Kamek, you da man :)
-;URL: http://www.mircscripts.org/comments.php?id=1341
-alias msn.truetype {
-  if (!$isfile($1)) { return }
-  var %fn = $iif(("*" iswm $1), $1, $+(", $1, ")), %ntables, %i = 1, %p, %namepos, %namelen, %nid = 1
-  if ($findtok(copyright family subfamily id fullname version postscript trademark manufacturer designer - urlvendor urldesigner, $prop, 32)) { %nid = $calc($ifmatch - 1) }
-  bread %fn 0 8192 &font
-  if ($bvar(&font, 1, 4) != 0 1 0 0) { return }
-  %ntables = $bvar(&font, 5).nword
-  while (%i <= %ntables) {
-    %p = $calc(13 + (%i - 1) * 16)
-    if (%p > 8192) { return }
-    if ($bvar(&font, %p, 4).text === name) { %namepos = $bvar(&font, $calc(%p + 8)).nlong | %namelen = $bvar(&font, $calc(%p + 12)).nlong | break }
-    inc %i
-  }
-  if (!%namepos) { return }
-  if (%namelen > 8192) { %namelen = 8192 }
+on *:DIALOG:msn.access*:sclick:14: {
+  msn.access.clear $msn.get($cid,room)
+}
 
-  bread %fn %namepos %namelen &font
-  var %nrecs = $bvar(&font, 3).nword, %storepos = $calc(%namepos + $bvar(&font, 5).nword), %i = 1
-  while (%i <= %nrecs) {
-    %p = $calc(7 + (%i - 1) * 12)
-    if ($bvar(&font, %p).nword = 3) && ($bvar(&font, $calc(%p + 6)).nword = %nid) {
-      var %len = $bvar(&font, $calc(%p + 8)).nword, %peid = $bvar(&font, $calc(%p + 2)).nword
-      bread %fn $calc(%storepos + $bvar(&font, $calc(%p + 10)).nword) %len &font
-      return $msn.uni2ansi($bvar(&font, 1, %len))
+alias msn.access.clear {
+  if ($input(Are you sure you want to clear the access list in $1 $+ ?,264,Clear Access List)) {
+    access $1 clear
+    did -r msn.access. $+ $cid 1
+  }
+}
+
+on *:DIALOG:msn.access*:sclick:15: {
+  access $msn.get($cid,room)
+  did -ra $dname 1 Retrieving Access list...
+}
+
+;Export - $2 $3 : $+ $5-
+on *:DIALOG:msn.access*:sclick:16: {
+  var %x $dname, %l $calc($hget(%x,num) - 1), %f access- $+ $gettok($mklogfn($msn.get($cid,room)),1,46) $+ .txt
+  if ($isfile($scriptdir $+ %f)) .remove " $+ $scriptdir $+ %f $+ "
+
+  while (%l >= 1) {
+    %a = $hget(%x,%l)
+    write " $+ $scriptdir $+ %f $+ " $gettok(%a,1-3,32) : $+ $gettok(%a,5-,32)
+    dec %l
+  }
+  %f = $input(Access list was saved successfully to: $+ $crlf $+ %f ,68,Access saved)
+}
+
+;Import
+on *:DIALOG:msn.access*:sclick:17: {
+  ;var %f " $+ $scriptdir $+ access- $+ $gettok($mklogfn($msn.get($cid,room)),1,46) $+ .txt $+ "
+  var %f " $+ $$sfile($scriptdir $+ *.txt,Choose a saved access list to import,Import) $+ "
+
+  if ($hget(msn.accimp. $+ $cid)) {
+    echo $color(info2) -at * Please wait, already importing a access list
+    return
+  }
+
+  hmake msn.accimp. $+ $cid 3
+  hload -n msn.accimp. $+ $cid %f
+
+  %msnx.accimp = 1
+  did -ra $dname 1 Importing Access list, please wait...
+  .timer. $+ msn.accimp. $+ $cid -m 0 500 msn.accimport msn.accimp. $+ $cid
+}
+
+alias msn.accimport {
+  if ($hget($1,%msnx.accimp) == $null) {
+    did -ra msn.access. $+ $cid 1 Retrieving Access list...
+    access $msn.get($cid,room)
+    .timer. $+ $1 off
+    unset %msnx.accimp
+    hfree $1
+  }
+  else {
+    access $msn.get($cid,room) ADD $hget($1,%msnx.accimp)
+    inc %msnx.accimp
+  }
+}
+
+on *:DIALOG:msn.access*:sclick:99: {
+  hfree $dname
+}
+
+raw 801:*: {
+  if ($dialog(msn.access. $+ $cid)) haltdef
+}
+
+raw 802:*: {
+  if ($dialog(msn.access. $+ $cid)) haltdef
+}
+
+raw 803:*: {
+  var %x msn.access. $+ $cid
+  if ($dialog(%x)) {
+    did -ra %x 1 Retrieving Access list...
+    if ($hget(%x)) hfree %x
+    hmake %x 2
+    hadd %x num 1
+    haltdef
+  }
+}
+
+raw 804:*: {
+  var %x msn.access. $+ $cid
+  if ($dialog(%x)) {
+    hadd %x $hget(%x,num) $3-
+    hinc %x num
+    did -e %x 1,12,13,14
+    haltdef
+  }
+}
+
+raw 805:*: {
+  var %a, %l 1, %x msn.access. $+ $cid
+  if ($dialog(%x)) {
+    did -r %x 1
+    while (%l <= $hget(%x,num)) {
+      %a = $hget(%x,%l)
+      did -a %x 1 $gettok(%a,1-2,32)
+      inc %l
     }
-    inc %i
+    did -d %x 1 $did(%x,1).lines
+    did -z %x 1
+    did -e %x 1
+    haltdef
   }
 }
 
-; unicode -> ansi simple converter
-alias -l msn.uni2ansi {
-  var %unicode = $1, %i = 1, %t = $numtok(%unicode, 32), %s = i, %c
-  while (%i <= %t) {
-    %c = $gettok(%unicode, $+(%i, -, $calc(%i + 2)), 32)
-    if ($gettok(%c, 1, 32) = 0) { %c = $chr($gettok(%c, 2, 32)) }
-    else { %c = ? }
-    %s = $left(%s, -1) $+ %c $+ i
-    inc %i 2
+raw 820:*: {
+  if ($dialog(msn.access. $+ $cid)) haltdef
+}
+
+;  :TK2CHATCHATA05 913 eXonyte %#�!!~~AChristiansChatWorld~~!! � :No access
+raw 913:*: {
+  var %x msn.access. $+ $cid
+  if ($dialog(%x)) {
+    did -ra %x 1 Access listing was denied (No access)
+    did -b %x 1,12,13,14
   }
-  return $left(%s, -1)
+}
+
+;--- Add Access
+alias msn.addacc dialog -m msn.addacc. $+ $cid msn.addacc
+
+dialog msn.addacc {
+  title "Add Access Entry"
+  icon $mircexe , 5
+  size -1 -1 150 67
+  option dbu
+
+  text "Type:", 1, 1 4 40 7, right
+  combo 2, 45 2 103 50, drop
+
+  text "Access Mask:", 3, 1 16 40 7, right
+  edit "", 4, 45 14 103 11, autohs
+
+  text "Amount of time:", 5, 1 28 40 7, right
+  edit "0", 6, 45 26 25 11
+  text "minutes", 7, 72 28 20 7
+
+  text "Reason:", 8, 1 40 40 7, right
+  edit "", 9, 45 38 103 11, autohs
+
+  button "Add", 99, 64 52 40 12, ok
+  button "Cancel", 98, 107 52 40 12, cancel
+}
+
+on *:DIALOG:msn.addacc*:init:*: {
+  did -a $dname 2 Deny
+  did -a $dname 2 Grant
+  did -a $dname 2 Host
+  did -a $dname 2 Owner
+  did -c $dname 2 1
+}
+
+on *:DIALOG:msn.addacc*:sclick:99: {
+  if (!$did(4)) halt
+
+  access $msn.get($cid,room) add $did(2).seltext $did(4) $did(6) : $+ $did(9)
+  if ($dialog(msn.access. $+ $cid)) access $msn.get($cid,room)
+}
+
+;--- Passport Info Editor
+alias msn.editpp dialog -m msn.editpp msn.editpp
+
+dialog msn.editpp {
+  title "Vincula - Edit Gatekeeper Info"
+  icon $mircexe , 5
+  size -1 -1 200 75
+  option dbu
+
+  text "MSNREGCookie:", 11, 2 3 40 10, right
+  edit %msnpass.cookie , 21, 42 1 157 18, hsbar multi
+
+  text "PassportTicket:", 12, 2 23 40 10, right
+  edit %msnpass.ticket , 22, 42 21 157 18, hsbar multi
+
+  text "PassportProfile:", 13, 2 43 40 10, right
+  edit %msnpass.profile , 23, 42 41 157 18, hsbar multi
+
+  button "OK", 99, 60 61 40 12, ok
+  button "Cancel", 98, 102 61 40 12, cancel
+}
+
+on *:DIALOG:msn.editpp:sclick:99: {
+  %msnpass.cookie = $did(21,1)
+  %msnpass.ticket = $did(22,1)
+  %msnpass.profile = $did(23,1)
 }
