@@ -1,0 +1,35 @@
+  ,o888b,`?888888888888888888888888888888888888888888888P',d888o,
+,8888 888   ?888                                   888P   888 8888,
+8888888P'    888               M$NChatX            888     ?8888888
+888P'        888     http://www.Matrix-Team.tk/    888        `?888
+`88   O     d888                                   888b     O   88'
+  `?._  _.o888888888888888888888888888888888888888888888o._  _.P'
+     |  |                                                    |
+     |  |  Fighting M$N untill it falls over and dies.       |
+     |  |                                                    |
+     `--+-[ http://www.Matrix-Team.tk ]----------------------+-.
+      | | What is it?                                        | |
+      | | M$NChatX is an Alternate Hacked OCX That allows    | |
+      | | itself AND the "Official" MSN Chat Control to be   | |
+      | | Registered at the SAME time, Therefor eliminating  | |
+      | | The need to re-register the Hacked OCX whenever it | |
+      | | is required, therfore making Connection Scripts    | |
+      | | work more efficently and faster (also less         | |
+      | | problems)                                          | |
+      | | P.S. M$NChatX can use ANY Port                     | |
+      | |                                                    | |
+      | | Script Developers (Conenction and Normal Script)   | |
+      | | Feel free to use M$NChatX in your script, aslong   | |
+      | | As this file remains in tact                       | |
+      | |                                                    | |
+      | | M$NChatX uses a different CLSID witch script       | |
+      | | developers would wanna know if they wanna use it   | |
+      | | The New CLSID:                                     | |
+      | | ECCDBA05-B58F-4509-AE26-CF47B2FFC3FE               | |
+      | | For more help, Check The Matrix Team (see Above)   | |
+      | | Site, (I havnt put anything on there yet so u'll   | |
+      | | Have to wait) or contact me via E-Mail (See Below) | |
+      | |                                                    | |
+<-----|-|----------------------------------------------------' |
+      | | Contact: Neo_Vortex@MSN.com                          |
+      `-+------------------------------------------------------'

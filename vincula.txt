@@ -1,6 +1,6 @@
-Vincula Neo (v4.6) - eXonyte's MSN Chat connection script
+Vincula Neo (v4.7) - eXonyte's MSN Chat connection script
 
-Date: Monday, January 13, 2003
+Date: Sunday, January 19, 2003
 
 -----------------------------------------------------------------------
 
@@ -17,6 +17,15 @@ date to correct this, or the display events can be modified at will.
 
 -----------------------------------------------------------------------
 
+v4.7 - What's new:
+- Now uses Neo-Vortex's M$NChatX OCX instead of the patched one it was
+  using before.  This new OCX allows me to re-enable the "Join Room
+  using MSN Chat" options!  Many thanks!  See MSNChatX.txt for info.
+- As stated above, "Join Room using MSN Chat" is back.
+- Changed Vincula so that it doesn't always use port 6667.
+- Removed the Mass Kick prot that I accidentally left in 4.6. (Sorry!)
+- Added more characters to the decoder.
+
 v4.6 - What's new:
 - Should work fine on Windows 98/ME systems again. Sorry about 4.5!
 - Got rid of those annoying DOS boxes in the process of fixing 98/ME.
@@ -30,13 +39,6 @@ v4.6 - What's new:
 - Rewrote the manual passport updater (/msn.mgetpp) so it works again.
 - Redid the /access dialog so it uses one edit instead of multiple,
   makes copying an entry's information much easier.
-
-v4.5 - What's new:
-- Made it switch between your installed MSN Chat OCX and a hacked one,
-  so that it can connect again.
-- Had to disable the "Join using MSN Chat" options, might be able to
-  fix them later, we'll see.
-- Fixed some other little bugs, don't remember what though.
 
 For old What's New lists, see the end of this file.
 
@@ -649,6 +651,9 @@ Since the nature of this script is multiple "ties" to MSN Chat, I think
 the name fits it well.  Vincula also means something like "it ties" in
 Spanish.
 
+Neo means "new".  When I wrote 4.0 I kept calling it the new Vincula,
+so I just ended up calling it Vincula Neo.
+
 If you would like to include this MSN connection addon with your own
 script:
 1) Make sure you mention that it was written by eXonyte.
@@ -678,6 +683,13 @@ Available at: http://www.mircscripts.org/comments.php?id=1439
 -----------------------------------------------------------------------
 
 Old What's New lists:
+
+v4.5 - What's new:
+- Made it switch between your installed MSN Chat OCX and a hacked one,
+  so that it can connect again.
+- Had to disable the "Join using MSN Chat" options, might be able to
+  fix them later, we'll see.
+- Fixed some other little bugs, don't remember what though.
 
 v4.4 - What's new:
 - Passport updater should be fixed now.  If the Windows XP Passport
@@ -921,4 +933,4 @@ v3.5 - What's new:
 v3.4 - Initial release
 
 -----------------------------------------------------------------------
-Copyright © 2002-2003 eXonyte                  Last Updated: 01/13/2003
+Copyright © 2002-2003 eXonyte                  Last Updated: 01/19/2003

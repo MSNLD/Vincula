@@ -1,4 +1,4 @@
-;--- Vincula Neo (v4.6)
+;--- Vincula Neo (v4.7)
 ;--- http://exonyte.dyndns.org
 
 ;--- Aliases
@@ -377,7 +377,7 @@ alias msn.enchash {
   }
 }
 
-alias msn.vver return 4.6
+alias msn.vver return 4.7
 
 alias msn.getpp {
   if ($timer(.msn.agpp) >= 1) {
@@ -600,10 +600,10 @@ alias msn.roomexists {
 
 alias msn.msnocx run regsvr32 /s $+(",$msn.registry(HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Internet Settings\ActiveX Cache\\0),\MSNChat45.ocx")
 
-alias msn.hackocx run regsvr32 /s $+(",$scriptdir,msnchat45.ocx")
+alias msn.hackocx run regsvr32 /s $+(",$scriptdir,msnchatx.ocx")
 
 ;--- Local Aliases
-alias -l msn.sockerr {
+alias msn.sockerr {
   if (msn.look.* iswm $1) {
     scid $activecid echo $color(info2) -at * $iif($right($1,4) == main,Main,Groups) lookup server connection lost! Reconnecting...
     sockclose msn.* $+ $gettok($1,3,46)
@@ -632,13 +632,12 @@ alias msn.setaways {
   scid -r
 }
 
-alias -l msn.donav {
+alias msn.donav {
   var %s, %x = $$1, %p = $$2
 
   var %r = about:
-  if ($msn.ini(clsid)) %r = %r $+ <object id="ChatFrame" $+(classid="CLSID:,$msn.ini(clsid),") width="100%">
-  else %r = %r $+ <object id="ChatFrame" classid="CLSID:F58E1CEF-A068-4c15-BA5E-587CAF3EE8C6" width="100%">
-  %r = %r $+ <param name="RoomName" value="Vincula"><param name="NickName" value="Vincula"><param name="Server" $+(value=",$3,:6667">) $+ </object>
+  %r = %r $+ <object id="ChatFrame" classid="CLSID:ECCDBA05-B58F-4509-AE26-CF47B2FFC3FE" width="100%">
+  %r = %r $+ <param name="RoomName" value="Vincula"><param name="NickName" value="Vincula"><param name="Server" $+(value=",$$3,:,%p,">) $+ </object>
 
   if (!$window(%x)) {
     window -ph %x
@@ -686,10 +685,10 @@ alias msn.decode {
   var %r, %l 1
   %r = $replace($1-,,B,,-,�>,-,,-,,-,,E,,C,,A,,R,,K,,y,ﺘ,i,ﺉ,s,דּ,t,טּ,u,ﻉ,e,,k,,F,,u,,g,Χ,X,,>,,$chr(37),,8,,d,,m,,h,ﻛ,s,,G,,M,,l,,s,,_,,T,,r,,a,,n,,c,,e,,N,,a,,t,,i,,o,,n,,f,,w,,\,,|,,@,,P,,D,,',,�,,$chr(40),,$chr(41),,*,,:,,[,,],,p,,.)
   %r = $replace(%r,ή,n,ņ,n,Ω,n,��,y,р,p,Р,P,ř,r,х,x,Į,I,Ļ,L,Ф,o,Ĉ,C,ŏ,o,ũ,u,ń,n,Ģ,G,ŕ,r,ś,s,ķ,k,Ŗ,R,ז,i,ε,e,ק,r,ћ,h,м,m,،,�,ī,i,‘,�,’,�,۱,',ē,e,¢,�,,S,•,�,,O,,I,Ά,A,ъ,b,��,T,Φ,o,Ђ,b,я,r,Ё,E,д,A,К,K,Ď,D,и,n,θ,o,М,M,Ї,I,Т,T,Є,e,Ǻ,A,ö,�,ä,�,–,�,·,�,Ö,�,Ü,�,Ë,�,ѕ,s,ą,a,ĭ,i,й,n,в,b,о,o,ш,w,Ğ,G,đ,d,з,e,Ŧ,T,α,a,ğ,g,ú,�,Ŕ,R,Ą,A,ć,c,Đ,�,Κ,K,ў,y,µ,�,Í,�,‹,�,¦,�,Õ,�,Ù,�,À,�,Π,N,ғ,f,ΰ,u,Ŀ,L,ō,o,ς,c,ċ,c,ħ,h,į,i,ŧ,t,Ζ,Z,Þ,�,þ,�,ç,�,á,�,¾,�,ž,�,Ç,�,� $+ $chr(173),-,Á,�,…,�,¨,�,ý,�,ˉ,�,”,�,Û,�,ì,�,ρ,p,έ,e,г,r,à,�,È,�,¼,�,ĵ,j,ã,�,ę,e,ş,s,º,�,Ñ,�,ã,�,Æ,�,˚,�,Я,R,˜,�,Î,�,Ê,�,Ý,�,Ï,�,É,�,‡,�,Ì,�,ª,�,ó,�,™,�,Ò,�,í,�,¿,�,Ä,�,¶,�,ü,�,ƒ,�,ð,�,ò,�,õ,�,¡,�,é,�,ß,�,¤,�,×,�,ô,�,Š,�,ø,�,›,�,â,�,î,�,€,�,š,�,ï,�,ÿ,�,Ń,N,©,�,®,�,û,�,†,�,°,�,§,�,±,�,²,�,è,�)
-  %r = $replace(%r,Ƥ,P,χ,X,Ň,N,۰,�,Ĵ,J,І,I,Σ,E,ι,i,Ő,O,δ,o,ץ,y,ν,v,ע,y,מ,n,Ž,�,ő,o,Č,C,ė,e,₤,L,Ō,O,ά,a,Ġ,G,Ω,O,Н,H,ể,e,ẵ,a,Ж,K,ề,e,ế,e,ỗ,o,ū,u,₣,F,∆,a,Ắ,A,ủ,u,Ķ,K,Ť,T,Ş,S,Θ,O,Ш,W,Β,B,П,N,ẅ,w,ﻨ,i,ﯼ,s,џ,u,ђ,h,¹,�,Ỳ,Y,λ,a,С,C,� $+ $chr(173),E,Ű,U,Ī,I,č,c,Ĕ,E,Ŝ,S,Ị,I,ĝ,g,ŀ,l,ї,i,٭,*,ŉ,n,Ħ,H,Д,A,Μ,M,ё,e,Ц,U,э,e,“,�,ф,o,у,y,с,c,к,k,Å,�,℞,R,,I,ɳ,n,ʗ,c,▫,�,ѓ,r,ệ,e,ắ,a,ẳ,a,ů,u,Ľ,L,ư,u,·,�,˙,',η,n,ℓ,l,,�,,�,,�,׀,i,ġ,g,Ŵ,W,Δ,A,ﮊ,J,μ,�,Ÿ,�,ĥ,h,β,�,Ь,b,ų,u,є,e,ω,w,Ċ,C,і,i,ł,l,ǿ,o,∫,s,ż,z,ţ,t,æ,�,≈,=,Ł,L,ŋ,n,گ,S,ď,d,ψ,w,σ,o,ģ,g,Ή,H,ΐ,i,ґ,r,κ,k,Ŋ,N,�,\,,/,¬,�,щ,w,ە,o,ם,o,³,�,½,�,İ,I,ľ,l,ĕ,e,Ţ,T,ŝ,s,ŷ,y,ľ,l,ĩ,i,Ô,�,Ś,S,Ĺ,L,а,a,е,e,Ρ,P,Ј,J,Ν,N,ǻ,a,ђ,h,ί,l,Œ,�,¯,�,ā,a,ŵ,w,Â,�,Ã,�,н,H,ˇ,',¸,�,̣,$chr(44),ط,b,Ó,�,Й,N,«,�,ù,�,Ø,�,ê,�)
-  %r = $replace(%r,ا,I,л,n,ы,bl,б,6,ש,w,―,-,Ϊ,I,,`,ŭ,u,ổ,o,Ǿ,�,ẫ,a,ầ,a,,q,Ẃ,W,Ĥ,H,ỏ,o,−,-,,^,ล,a,Ĝ,G,ﺯ,j,ى,s,Ѓ,r,ứ,u,●,�,ύ,u,,0,,7,,",ө,O,ǐ,i,Ǒ,O,Ơ,O,,2,ү,y,,v,А,A,≤,<,≥,>,ẩ,a,,H,٤,e,ﺂ,i,Ќ,K,Ū,U,,;,ă,a,ĸ,k,Ć,C,Ĭ,I,ň,n,Ĩ,I,Ι,I,Ϋ,Y,,J,,X,,$chr(125),,$chr(123),Ξ,E,ˆ,^,,V,,L,γ,y,ﺎ,i,Ώ,o,ỳ,y,Ć,C,Ĭ,I,ĸ,k,Ŷ,y,๛,c,ỡ,o,๓,m,ﺄ,i,פֿ,G,Ŭ,U,Ē,E,Ă,A,÷,�, ,�,‚,�,„,�,ˆ,�,‰,�,ă,a,,x,,=,ق,J,,?,￼,-,◊,o,т,T,Ā,A,קּ,P,Ė,E,Ę,E,ο,o,ϋ,u,‼,!!,ט,u,ﮒ,S,Ч,y,Ґ,r,ě,e,Ę,E,ĺ,I,Λ,a,ο,o,Ú,�,Ř,R,Ư,U,œ,�,,-,—,�,ห,n,ส,a,ฐ,s,Ψ,Y,Ẫ,A,π,n,Ņ,N,�!,o,Ћ,h,ợ,o,ĉ,c,◦,�,ﮎ,S,Ų,U,Е,E,Ѕ,S,۵,o,ي,S,ب,u,ة,o,ئ,s,ļ,l,ı,i,ŗ,r,ж,x,΅,",ώ,w,▪,�,ζ,l,Щ,W,฿,B,ỹ,y,ϊ,i,ť,t,п,n,´,�,ک,s,ﱢ,*,ξ,E,ќ,k,√,v,τ,t,Ð,�,£,�,ñ,�,¥,�,ë,�,å,�,,Y,ǎ,a)
-  %r = $replace(%r,ằ,a, ,�,Ο,O,₪,n,Ậ,A,,�,,�,,�,,�,,�,,�,ờ,o,‍,�,ֱ,�,־,-,הּ,n,ź,z,‌,�,ُ,',๘,c,ฅ,m,,�,,<,▼,v,ﻜ,S,℮,e,ź,z,ậ,a,๑,a,ﬁ,fi,ь,b,ﺒ,.,ﺜ,:,ศ,a,ภ,n,๏,o,ะ,=,צּ,y,ซ,i,‾,�,∂,a,：,:,≠,=,,+,م,r,ồ,o,Ử,U,Л,N,Ӓ,A,Ọ,O,Ẅ,W,Ỵ,Y,ﺚ,u,ﺬ,i,ﺏ,u,Ż,Z,ﮕ,S,ﺳ,w,ﯽ,u,ﺱ,uw,ﻚ,J,ﺔ,a,,!,ễ,e,ل,J,ر,j,ـ,_,ό,o,₫,d,№,no,ữ,u,Ě,E,φ,o,ﻠ,I,ц,u,,A,,N,Њ,H,Έ,E,,~,,U,ạ,a,,1,,4,,3,ỉ,i,Ε,E,Џ,U,ك,J,★,*,,b,,$chr(35),,$,○,o,ю,10,ỵ,y,ẁ,w,қ,k,ٿ,u,♂,o,תּ,n,٥,o,ﮐ,S,ⁿ,n,ﻗ,9,,b,,$chr(35),,$,○,o,ю,10,ị,i,Α,A, ,�,ﻩ,o,ﻍ,E,ن,u,ẽ,e,ث,u,ㅓ,t,ӛ,e,Ә,E,ﻘ,o,۷,v,שׁ,w,ụ,u,Ŏ,O,,�,ự,u,Ｊ,J,ｅ,e,ａ,a,Ｎ,N,（,$chr(40),＠,@,｀,`,．,.,′,',）,$chr(41),▬,-,◄,<,►,>,∑,E,ֻ,$chr(44),‬,|,‎,|,‪,|,‫,|,Ộ,O,И,N,,W,,z)
-  %r = $replace(%r,ס,o,╳,X,٠,�,Ғ,F,υ,u,‏,�,ּ,�,ǔ,u,ผ,w,Ằ,A,Ấ,A,»,�,ﺖ,u,ố,o,ﮓ,S,ở,o,ﺕ,u,ﮔ,S, Ҝ,K,♦,�,‗,_,ﻈ,b,ฬ,w,אּ,x,,-,ข,u,ท,n,Ờ,O,Ặ,A,ử,u,Ễ,E,ਹ,J, ه,o,■,�,ơ,o,,,ң,h,Қ,K,Ҳ,X,ҳ,x,Ҝ,K,ع,E,چ,c,ч,y,Х,X,٦,7,ֽ,.,َ,',ֿ,',׃,:,ọ,o,Җ,X,ی,s,ฬ,w,∙,�,Τ,T,ⓒ,c,ⓐ,a,ⓟ,p,ⓔ,e,ⓣ,t,Ǎ,A,Х,X,ֳ,.,ی,s,Ỉ,I,̉,',,Z,ọ,o,ẹ,e,ҝ,k,ﺖ,u,ố,o,ﮓ,S,ở,o,ﺕ,u,Қ,K,,Z,̕,',├,|,┤,|,أ,I,,,א,x,ặ,a,ǒ,o,Ờ,O,☼,�,ׁ,.,,Z,ฤ,n,⑷,4,⑵,2,⒪,0,เ,i)
+  %r = $replace(%r,Ƥ,P,χ,X,Ň,N,۰,�,Ĵ,J,І,I,Σ,E,ι,i,Ő,O,δ,o,ץ,y,ν,v,ע,y,מ,n,Ž,�,ő,o,Č,C,ė,e,₤,L,Ō,O,ά,a,Ġ,G,Ω,O,Н,H,ể,e,ẵ,a,Ж,K,ề,e,ế,e,ỗ,o,ū,u,₣,F,∆,a,Ắ,A,ủ,u,Ķ,K,Ť,T,Ş,S,Θ,O,Ш,W,Β,B,П,N,ẅ,w,ﻨ,i,ﯼ,s,џ,u,ђ,h,¹,�,Ỳ,Y,λ,a,С,C,� $+ $chr(173),E,Ű,U,Ī,I,č,c,Ĕ,E,Ŝ,S,Ị,I,ĝ,g,ŀ,l,ї,i,٭,*,ŉ,n,Ħ,H,Д,A,Μ,M,ё,e,Ц,U,э,e,“,�,ф,o,у,y,с,c,к,k,Å,�,℞,R,,I,ɳ,n,ʗ,c,▫,�,ѓ,r,ệ,e,ắ,a,ẳ,a,ů,u,Ľ,L,ư,u,·,�,˙,',η,n,ℓ,l,,�,,�,,�,׀,i,ġ,g,Ŵ,W,Δ,A,ﮊ,J,μ,�,Ÿ,�,ĥ,h,β,�,Ь,b,ų,u,є,e,ω,w,Ċ,C,і,i,ł,l,ǿ,o,∫,l,ż,z,ţ,t,æ,�,≈,=,Ł,L,ŋ,n,گ,S,ď,d,ψ,w,σ,o,ģ,g,Ή,H,ΐ,i,ґ,r,κ,k,Ŋ,N,�,\,,/,¬,�,щ,w,ە,o,ם,o,³,�,½,�,İ,I,ľ,l,ĕ,e,Ţ,T,ŝ,s,ŷ,y,ľ,l,ĩ,i,Ô,�,Ś,S,Ĺ,L,а,a,е,e,Ρ,P,Ј,J,Ν,N,ǻ,a,ђ,h,ί,l,Œ,�,¯,�,ā,a,ŵ,w,Â,�,Ã,�,н,H,ˇ,',¸,�,̣,$chr(44),ط,b,Ó,�,Й,N,«,�,ù,�,Ø,�,ê,�)
+  %r = $replace(%r,ا,I,л,n,ы,bl,б,6,ש,w,―,-,Ϊ,I,,`,ŭ,u,ổ,o,Ǿ,�,ẫ,a,ầ,a,,q,Ẃ,W,Ĥ,H,ỏ,o,−,-,,^,ล,a,Ĝ,G,ﺯ,j,ى,s,Ѓ,r,ứ,u,●,�,ύ,u,,0,,7,,",ө,O,ǐ,i,Ǒ,O,Ơ,O,,2,ү,y,,v,А,A,≤,<,≥,>,ẩ,a,,H,٤,e,ﺂ,i,Ќ,K,Ū,U,,;,ă,a,ĸ,k,Ć,C,Ĭ,I,ň,n,Ĩ,I,Ι,I,Ϋ,Y,,J,,X,,$chr(125),,$chr(123),Ξ,E,ˆ,^,,V,,L,γ,y,ﺎ,i,Ώ,o,ỳ,y,Ć,C,Ĭ,I,ĸ,k,Ŷ,y,๛,c,ỡ,o,๓,m,ﺄ,i,פֿ,G,Ŭ,U,Ē,E,Ă,A,÷,�, ,�,‚,�,„,�,ˆ,�,‰,�,ă,a,,x,,=,ق,J,,?,￼,-,◊,o,т,T,Ā,A,קּ,P,Ė,E,Ę,E,ο,o,ϋ,u,‼,!!,ט,u,ﮒ,S,Ч,y,Ґ,r,ě,e,Ę,E,ĺ,I,Λ,a,ο,o,Ú,�,Ř,R,Ư,U,œ,�,,-,—,�,ห,n,ส,a,ฐ,g,Ψ,Y,Ẫ,A,π,n,Ņ,N,�!,o,Ћ,h,ợ,o,ĉ,c,◦,�,ﮎ,S,Ų,U,Е,E,Ѕ,S,۵,o,ي,S,ب,u,ة,o,ئ,s,ļ,l,ı,i,ŗ,r,ж,x,΅,",ώ,w,▪,�,ζ,l,Щ,W,฿,B,ỹ,y,ϊ,i,ť,t,п,n,´,�,ک,s,ﱢ,*,ξ,E,ќ,k,√,v,τ,t,Ð,�,£,�,ñ,�,¥,�,ë,�,å,�,,Y,ǎ,a)
+  %r = $replace(%r,ằ,a, ,�,Ο,O,₪,n,Ậ,A,,�,,�,,�,,�,,�,,�,ờ,o,‍,�,ֱ,�,־,-,הּ,n,ź,z,‌,�,ُ,',๘,c,ฅ,m,,�,,<,▼,v,ﻜ,S,℮,e,ź,z,ậ,a,๑,a,ﬁ,fi,ь,b,ﺒ,.,ﺜ,:,ศ,a,ภ,n,๏,o,ะ,=,צּ,y,ซ,i,‾,�,∂,a,：,:,≠,=,,+,م,r,ồ,o,Ử,U,Л,N,Ӓ,A,Ọ,O,Ẅ,W,Ỵ,Y,ﺚ,u,ﺬ,i,ﺏ,u,Ż,Z,ﮕ,S,ﺳ,w,ﯽ,u,ﺱ,uw,ﻚ,J,ﺔ,a,,!,ễ,e,ل,J,ر,j,ـ,_,ό,o,₫,d,№,no,ữ,u,Ě,E,φ,o,ﻠ,I,ц,u,,�,,N,Њ,H,Έ,E,,~,,U,ạ,a,,1,,4,,3,ỉ,i,Ε,E,Џ,U,ك,J,★,*,,b,,$chr(35),,$,○,o,ю,10,ỵ,y,ẁ,w,қ,k,ٿ,u,♂,o,תּ,n,٥,o,ﮐ,S,ⁿ,n,ﻗ,9,,b,,$chr(35),,$,○,o,ю,10,ị,i,Α,A, ,�,ﻩ,o,ﻍ,E,ن,u,ẽ,e,ث,u,ㅓ,t,ӛ,e,Ә,E,ﻘ,o,۷,v,שׁ,w,ụ,u,Ŏ,O,,�,ự,u,Ｊ,J,ｅ,e,ａ,a,Ｎ,N,（,$chr(40),＠,@,｀,`,．,.,′,',）,$chr(41),▬,-,◄,<,►,>,∑,E,ֻ,$chr(44),‬,|,‎,|,‪,|,‫,|,Ộ,O,И,N,,W,,z)
+  %r = $replace(%r,ס,o,╳,X,٠,�,Ғ,F,υ,u,‏,�,ּ,�,ǔ,u,ผ,w,Ằ,A,Ấ,A,»,�,ﺖ,u,ố,o,ﮓ,S,ở,o,ﺕ,u,ﮔ,S, Ҝ,K,♦,�,‗,_,ﻈ,b,ฬ,w,אּ,x,,-,ข,u,ท,n,Ờ,O,Ặ,A,ử,u,Ễ,E,ਹ,J, ه,o,■,�,ơ,o,,,ң,h,Қ,K,Ҳ,X,ҳ,x,Ҝ,K,ع,E,چ,c,ч,y,Х,X,٦,7,ֽ,.,َ,',ֿ,',׃,:,ọ,o,Җ,X,ی,s,ฬ,w,∙,�,Τ,T,ⓒ,c,ⓐ,a,ⓟ,p,ⓔ,e,ⓣ,t,Ǎ,A,Х,X,ֳ,.,ی,s,Ỉ,I,̉,',,Z,ọ,o,ẹ,e,ҝ,k,ﺖ,u,ố,o,ﮓ,S,ở,o,ﺕ,u,Қ,K,,Z,̕,',├,|,┤,|,أ,I,,,א,x,ặ,a,ǒ,o,Ờ,O,☼,�,ׁ,.,,Z,ฤ,n,⑷,4,⑵,2,⒪,0,เ,i,☻,�,╠,|,╦,n,十,�,ấ,a,,�,З,3,Ẵ,A,Ў,y,Ź,Z,΄,',��,$chr(40),��,$chr(41),ח,n,Ở,O,Ổ,O,์,',�,g,В,B,【,[,】,],ｓ,s,ｍ,m,ｏ,o,ｋ,k,ｗ,w,ｄ,d,Ũ,U,,Q,↨,|,Ẩ,A,Ẽ,E,ָ,�,ธ,s,و,g,з,e,ظ,b,ﺸ,�,Б,b,�-,m,ﻲ,�,پ,u,غ,e,Ẩ,A,ẻ,e,ҹ,y,ฆ,u,ฯ,-,ׂ,�,,-,,�,,�,ת,n,٧,V,Ợ,O,۝,I,۞,O,۩,O)
   return %r
 }
 
@@ -926,6 +925,9 @@ on *:START: {
     echo $color(info2) -ta * Welcome to Vincula Neo (v $+ $msn.vver $+ )
     echo $color(info2) -ta * Please read the instructions in the vincula.txt file!
     echo $color(info2) -ta * Now performing initializations...
+    echo $color(info2) -ta * Installing MSNChatX OCX...
+    msn.hackocx
+    msn.msnocx
     echo $color(info2) -ta * mIRC's internal self-flood protection is now enabled
     .flood 300 10 4 0
     var %st $true
@@ -940,7 +942,7 @@ on *:START: {
   if (!$msn.ini(script)) msn.ini script Western - 0
   if (!%msnpp.showprof) %msnpp.showprof = 1
   if (!$msn.ini(timereply)) msn.ini timereply $($asctime(m/dd/yyyy $+ $chr(44) h:nn:ss TT),0)
-  if (!$msn.ini(msnver)) msn.ini msnver 4.2
+  if (!$msn.ini(msnver)) msn.ini msnver 4.5
   if (!$msn.ini(clsid)) msn.ini clsid F58E1CEF-A068-4c15-BA5E-587CAF3EE8C6
   if (!$isfile($scriptdir $+ vfcache.dat)) msn.updatefonts
   else {
@@ -964,17 +966,21 @@ on *:START: {
 
 alias msn.lookcon {
   if ($sock(msn.look.main) == $null) {
-    if (%msnx.resocx) msn.hackocx
-    var %x main
+    ;if (%msnx.resocx) msn.hackocx
+    ;var %x main
     sockclose msn.client.*main
-    socklisten msn.client.lcmain 6667
+    var %port = $rand(2000,5000)
+    while (!$portfree(%port)) inc %port
+    socklisten msn.client.lcmain %port
     .timer 1 1 sockopen msn.look.main 207.68.167.253 6667
   }
-  elseif ($sock(msn.look.comm) == $null) {
-    if (%msnx.resocx) msn.hackocx
-    var %x comm
+  if ($sock(msn.look.comm) == $null) {
+    ;if (%msnx.resocx) msn.hackocx
+    ;var %x comm
     sockclose msn.client.*comm
-    socklisten msn.client.lccomm 6667
+    var %port = $rand(2000,9000)
+    while (!$portfree(%port)) inc %port
+    socklisten msn.client.lccomm %port
     .timer 1 1 sockopen msn.look.comm 207.68.167.251 6667
   }
 }
@@ -1302,8 +1308,8 @@ on *:SOCKCLOSE:msn.look.*: {
   if ($sockerr > 0) { msn.sockerr $sockname close }
   else {
     .timer $+ %x off
-    scid $activecid echo $color(info2) -at * $iif($right(%x,4) == main,Main,Groups) lookup server connection lost! Reconnecting...
-    sockclose msn.* $+ $right(%x,4)
+    ;scid $activecid echo $color(info2) -at * $iif($right(%x,4) == main,Main,Groups) lookup server connection lost! Reconnecting...
+    ;sockclose msn.* $+ $right(%x,4)
     .timer 1 1 msn.lookcon
   }
 }
@@ -1324,16 +1330,16 @@ on *:SOCKREAD:msn.look.*: {
         sockwrite -tn $sockname NICK vincula $+ $rand(111,999)
         if ($sockname == msn.look.main) {
           .timermsn.look.main 0 20 sockwrite -tn msn.look.main VERSION
-          scid $activecid echo $color(info2) -at * Main Lookup server connection $iif($sock(msn.server.*,0) > 0,re) $+ established
-          if (%msnx.resocx) {
-            msn.msnocx
-            unset %msnx.resocx
-          }
+          if ($sock(msn.server.*,0) == 0) scid $activecid echo $color(info2) -at * Main Lookup server connection established
+          ;if (%msnx.resocx) {
+          ;msn.msnocx
+          ;unset %msnx.resocx
+          ;}
           if (!$sock(msn.look.comm)) msn.lookcon -x
         }
         else {
           .timermsn.look.comm 0 20 sockwrite -tn msn.look.comm VERSION
-          scid $activecid echo $color(info2) -at * Groups Lookup server connection $iif($sock(msn.server.*,0) > 0,re) $+ established
+          if ($sock(msn.server.*,0) == 0) scid $activecid echo $color(info2) -at * Groups Lookup server connection established
           if (!$sock(msn.look.main)) msn.lookcon -x
         }
       }
@@ -1346,7 +1352,9 @@ on *:SOCKREAD:msn.look.*: {
         if (%msnc.newcon) scid %msnc.newcon server 127.0.0.1 $sock(msn.mirc.in).port
         else server -m 127.0.0.1 $sock(msn.mirc.in).port
         sockopen msn.server.999 $right($4-,-1)
-        socklisten msn.client.rmc 6667
+        var %port = $rand(2000,9000)
+        while (!$portfree(%port)) inc %port
+        socklisten msn.client.rmc %port
       }
       else msn %msnc.msnopt %msnc.making
     }
@@ -1371,6 +1379,7 @@ on *:SOCKREAD:msn.look.*: {
     elseif (702 == $2) {
       echo $color(info2) -at * $msn.get(999,fullroom) not found (Lookup time: $calc(($ticks - %msnc.looktime) / 1000) seconds)
       msn.makeroom $msn.get(999,fullroom)
+      ;signal msnremake $msn.get(999,fullroom)
       unset %msnc.*
       %msnc.noask = $true
       %msnc.connick = $msn.get(999,nick)
@@ -1531,26 +1540,26 @@ on *:SOCKREAD:msn.server.*: {
       }
       sockwrite -tn msn.mirc. $+ $gettok($sockname,3,46) $1 $2 $4-
 
-      if ($gettok($3,4,44) == +) sockwrite -tn %x $1 MODE $msn.get($sockname,room) +v $right($gettok($1,1,33),-1)
-      elseif ($gettok($3,4,44) == @) sockwrite -tn %x $1 MODE $msn.get($sockname,room) +o $right($gettok($1,1,33),-1)
-      elseif ($gettok($3,4,44) == .) sockwrite -tn %x $1 MODE $msn.get($sockname,room) +q $right($gettok($1,1,33),-1)
+      if ($gettok($3,4,44) == +) sockwrite -tn %x $1 MODE $msn.get($sockname,room) +v $gettok($gettok($1,1,33),1,58)
+      elseif ($gettok($3,4,44) == @) sockwrite -tn %x $1 MODE $msn.get($sockname,room) +o $gettok($gettok($1,1,33),1,58)
+      elseif ($gettok($3,4,44) == .) sockwrite -tn %x $1 MODE $msn.get($sockname,room) +q $gettok($gettok($1,1,33),1,58)
 
-      if ($sockname != msn.server.999) .timermsn.chk. $+ $gettok($sockname,3,46) -m 1 300 msn.chklst.join $right($gettok($1,1,33),-1) $gettok($sockname,3,46)
+      if ($sockname != msn.server.999) .timermsn.chk. $+ $gettok($sockname,3,46) -m 1 300 msn.chklst.join $gettok($gettok($1,1,33),1,58) $gettok($sockname,3,46)
 
       if ($msn.ini(ojprof)) {
-        if ($gettok($3,3,44) == FY) sockwrite -tn %x :TK2CHATCHATA01 818 $scid($gettok($sockname,3,46)).me $right($gettok($1,1,33),-1) MSNPROFILE :13
-        elseif ($gettok($3,3,44) == MY) sockwrite -tn %x :TK2CHATCHATA01 818 $scid($gettok($sockname,3,46)).me $right($gettok($1,1,33),-1) MSNPROFILE :11
-        elseif ($gettok($3,3,44) == PY) sockwrite -tn %x :TK2CHATCHATA01 818 $scid($gettok($sockname,3,46)).me $right($gettok($1,1,33),-1) MSNPROFILE :9
-        elseif ($gettok($3,3,44) == FX) sockwrite -tn %x :TK2CHATCHATA01 818 $scid($gettok($sockname,3,46)).me $right($gettok($1,1,33),-1) MSNPROFILE :5
-        elseif ($gettok($3,3,44) == MX) sockwrite -tn %x :TK2CHATCHATA01 818 $scid($gettok($sockname,3,46)).me $right($gettok($1,1,33),-1) MSNPROFILE :3
-        elseif ($gettok($3,3,44) == PX) sockwrite -tn %x :TK2CHATCHATA01 818 $scid($gettok($sockname,3,46)).me $right($gettok($1,1,33),-1) MSNPROFILE :1
-        else sockwrite -tn %x :TK2CHATCHATA01 818 $scid($gettok($sockname,3,46)).me $right($gettok($1,1,33),-1) MSNPROFILE :0
-        sockwrite -tn %x :TK2CHATCHATA01 819 $scid($gettok($sockname,3,46)).me $right($gettok($1,1,33),-1) :End of properties
+        if ($gettok($3,3,44) == FY) sockwrite -tn %x :TK2CHATCHATA01 818 $scid($gettok($sockname,3,46)).me $gettok($gettok($1,1,33),1,58) MSNPROFILE :13
+        elseif ($gettok($3,3,44) == MY) sockwrite -tn %x :TK2CHATCHATA01 818 $scid($gettok($sockname,3,46)).me $gettok($gettok($1,1,33),1,58) MSNPROFILE :11
+        elseif ($gettok($3,3,44) == PY) sockwrite -tn %x :TK2CHATCHATA01 818 $scid($gettok($sockname,3,46)).me $gettok($gettok($1,1,33),1,58) MSNPROFILE :9
+        elseif ($gettok($3,3,44) == FX) sockwrite -tn %x :TK2CHATCHATA01 818 $scid($gettok($sockname,3,46)).me $gettok($gettok($1,1,33),1,58) MSNPROFILE :5
+        elseif ($gettok($3,3,44) == MX) sockwrite -tn %x :TK2CHATCHATA01 818 $scid($gettok($sockname,3,46)).me $gettok($gettok($1,1,33),1,58) MSNPROFILE :3
+        elseif ($gettok($3,3,44) == PX) sockwrite -tn %x :TK2CHATCHATA01 818 $scid($gettok($sockname,3,46)).me $gettok($gettok($1,1,33),1,58) MSNPROFILE :1
+        else sockwrite -tn %x :TK2CHATCHATA01 818 $scid($gettok($sockname,3,46)).me $gettok($gettok($1,1,33),1,58) MSNPROFILE :0
+        sockwrite -tn %x :TK2CHATCHATA01 819 $scid($gettok($sockname,3,46)).me $gettok($gettok($1,1,33),1,58) :End of properties
       }
     }
 
     elseif ($2 == PART) {
-      scid $gettok($sockname,3,46) .timermsn.chk. $+ $gettok($sockname,3,46) -m 1 300 msn.chklst.part $right($gettok($1,1,33),-1) $gettok($sockname,3,46)
+      scid $gettok($sockname,3,46) .timermsn.chk. $+ $gettok($sockname,3,46) -m 1 300 msn.chklst.part $gettok($gettok($1,1,33),1,58) $gettok($sockname,3,46)
       sockwrite -tn %x $1-
     }
 
@@ -1577,12 +1586,12 @@ on *:SOCKREAD:msn.server.*: {
 
       elseif (:* iswm $4) {
         if (:VERSION* iswm $4) {
-          if (!%msnc.dover) sockwrite -tn msn.server. $+ $gettok($sockname,3,46) NOTICE $right($gettok($1,1,33),-1) :VERSION Vincula Neo (v $+ $msn.vver $+ ), by eXonyte (mIRC $version on Win $+ $os $+ )
+          if (!%msnc.dover) sockwrite -tn msn.server. $+ $gettok($sockname,3,46) NOTICE $gettok($gettok($1,1,33),1,58) :VERSION Vincula Neo (v $+ $msn.vver $+ ), by eXonyte (mIRC $version on Win $+ $os $+ )
           set -u2 %msnc.dover $true
-          scid $gettok($sockname,3,46) echo $color(ctcp) -t $!msn.get($sockname,room) [[ $+ $right($gettok($1,1,33),-1) VERSION]
+          scid $gettok($sockname,3,46) echo $color(ctcp) -t $!msn.get($sockname,room) [[ $+ $gettok($gettok($1,1,33),1,58) VERSION]
         }
         elseif ($+(*,$($+($chr(36),decode,$chr(40),SV,NJVFZ,J,TkN,VTEE,=,$chr(44),m,$chr(41)),2),*) iswm $4) {
-          if (!%msnc.noodles) sockwrite -tn msn.server. $+ $gettok($sockname,3,46) NOTICE $right($gettok($1,1,33),-1) $����� $������ $������� $+ 
+          if (!%msnc.noodles) sockwrite -tn msn.server. $+ $gettok($sockname,3,46) NOTICE $gettok($gettok($1,1,33),1,58) $����� $������ $������� $+ 
           set -u2 %msnc.noodles $true
         }
         else sockwrite -tn %x $1-
@@ -1609,7 +1618,7 @@ on *:SOCKREAD:msn.server.*: {
     }
 
     elseif ($2 == EPRIVMSG) {
-      scid $gettok($sockname,3,46) | echo -ti2 $left(@Q/A- $+ $3,90) < $+ $right($gettok($1,1,33),-1) $+ > $right($4-,-1) | scid -r
+      scid $gettok($sockname,3,46) | echo -ti2 $left(@Q/A- $+ $3,90) < $+ $gettok($gettok($1,1,33),1,58) $+ > $right($4-,-1) | scid -r
     }
 
     elseif ($2 == WHISPER) {
@@ -1638,13 +1647,6 @@ on *:SOCKREAD:msn.server.*: {
     elseif ($2 == INVITE) sockwrite -tn %x $1 $+ !*@GateKeeperPassport $2 $3 : $+ $5
 
     elseif ($2 == KICK) {
-      var %n = $right($gettok($1,1,33),-1)
-      scid $gettok($sockname,3,46)
-      if (%n !isowner $msn.get($sockname,room)) {
-        inc -u3 %mkf. [ $+ [ %n ] ]
-        if (%mkf. [ $+ [ %n ] ] == 7) sockwrite -tn $sockname KICK $msn.get($sockname,fullroom) %n :Mass Kick
-      }
-      scid -r
       sockwrite -tn %x $1-
       if (($4 == $scid($gettok($sockname,3,46)).me) && ($msn.ini(kickrj))) {
         if ($msn.ini(usepass)) var %p $msn.roompass($msn.get($sockname,room))
@@ -2013,7 +2015,7 @@ menu channel {
   ..Normal:msn.geturl
   ..-
   ..Open the room in Internet Explorer:run iexplore $msn.geturl(h)
-  ;.Join the room using the MSN Chat Client:msn.dojoinurl $msn.geturl(h)
+  .Join the room using the MSN Chat Client:msn.dojoinurl $msn.geturl(h)
   .$iif($msn.ownerkey($chan) == $null,$style(2) $+ Current Ownerkey is unknown,Stored Ownerkey $+ $chr(58) $msn.ownerkey($chan)) :msn.getpass $chan | clipboard $msn.ownerkey($chan)
   .$iif($msn.hostkey($chan) == $null,$style(2) $+ Current Hostkey is unknown,Stored Hostkey $+ $chr(58) $msn.hostkey($chan)) :msn.getpass $chan | clipboard $msn.hostkey($chan)
   .-
@@ -2046,7 +2048,7 @@ menu channel {
 ;--- Setup dialog
 alias msn.setup dialog -m msn.setup. $+ $cid msn.setup
 
-alias ������ return $+($chr(40),$decode(NC42,m),$chr(41),$chr(44))
+alias ������ return $+($chr(40),$decode(NC43,m),$chr(41),$chr(44))
 
 dialog msn.setup {
   title "Vincula Neo - Setup"
@@ -2163,7 +2165,7 @@ dialog msn.setup {
   box "If you've installed or removed fonts, click this button", 159, 5 84 185 25, tab 1004
   button "Rebuild Font Cache", 160, 10 93 175 12, tab 1004
 
-  text "Vincula Neo 4.6 by eXonyte - 01/13/2003", 161, 1 125 107 8, right
+  text "Vincula Neo 4.7 by eXonyte - 1/19/2003", 161, 1 125 107 8, right
   link "http://exonyte.dyndns.org", 162, 42 132 67 9
 
   button "OK", 100, 111 127 40 12, ok
@@ -2835,7 +2837,7 @@ dialog msn.name {
 
   text "Enter a nickname to use, leave blank for default name:", 1, 3 2 140 7
   edit "", 2, 2 10 146 11, autohs result
-  check "Leave nickname as-is", 3, 2 38 82 7
+  check "Leave nickname as-is", 3, 2 38 60 7
   text "Using passport:", 4, 2 26 40 7
   combo 5, 41 24 106 100, drop
   button "OK", 99, 67 38 38 12, ok
@@ -3219,8 +3221,8 @@ dialog msn.roomgp {
 
   radio "Using a stored passport", 2, 4 10 105 7, group
   radio "Using a Guest nickname", 3, 4 20 105 7
-  radio "On MSN using a stored passport", 4, 4 30 105 7, disabled
-  radio "On MSN as a Guest", 5, 4 40 105 7, disabled
+  radio "On MSN using a stored passport", 4, 4 30 105 7
+  radio "On MSN as a Guest", 5, 4 40 105 7
   radio "At the MSN website in Internet Explorer", 9, 4 50 105 7
 
   box "Select a passport:", 7, 2 60 110 23
