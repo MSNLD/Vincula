@@ -1,10 +1,10 @@
-Vincula Neo (v4.8) - eXonyte's MSN Chat connection script
+Vincula Neo (v4.9) - eXonyte's MSN Chat connection script
 
-Date: Friday, July 18, 2003
+Date: Saturday, October 11, 2003
 
 -----------------------------------------------------------------------
 
-Requires mIRC 6.x, only tested in 6.03.
+Requires mIRC 6.x, only tested in 6.03 and 6.1.
 WILL NOT work in mIRC 5.91 or lower.
 
 If you want to know things like the socket names, search in this file
@@ -16,6 +16,37 @@ likely conflict with it.  MTS engine support may be added at a future
 date to correct this, or the display events can be modified at will.
 
 -----------------------------------------------------------------------
+
+v4.9 - What's new:
+- You can change nicknames and clone again.
+- You don't need the MSNREGCookie anymore.
+- Vincula now stores room IP addresses in a hash table. Great for your
+  sockbots.
+- Added $msn.roomip to get room IP addresses from the hash table.
+- Added /msn.ipjoin command to join without looking up the room.
+  (See below for details.)
+- Fixed the NOOP timer that was totally screwed up in 4.8.
+- Removed some debugging code from the msn.server.* sockread and from
+  the /msn.getcookie updater.
+- Hopefully fixed the in-room /kill display.
+- Vincula doesn't reinstall MSNChatX all the time now. Didn't find out
+  until after release that it was causing Guest_null problems.
+  Hopefully it shouldn't do that anymore.
+- The /msn.resetocx command now waits 5 seconds before reinstalling the
+  original MSN Chat OCX. Hopefully stops Guest_null.
+- The Enter Name dialog now shows which passports need updating.
+- Away nicknames will be gray in mIRC 6.1 now.
+- Added support for the Chat Partners (PT) category. Thanks to Ziggy.
+- Will now display /kill messages in the room instead of in Status.
+- Fixed /join %#roomname so that it'll work properly.
+- Changed the Vincula Version reply so that you can script on it
+  without having to edit Vincula.  Normal ctcp *:VERSION: scripts will
+  work now. You still have to edit Vincula to change it though.
+- Fixed /msn.getcookie so there are no more /remove errors, and it will
+  actually get the correct cookie now.
+- Tweaked both passport updaters so that they fully log out now.
+- Vincula will now automatically update the lookup server IP addresses,
+  just in case MSN changes them like they have before.
 
 v4.8 - What's new:
 - Passport updater should work fine again.
@@ -36,21 +67,6 @@ v4.8 - What's new:
   Ziggy for pointing out my overlooking of that.
 - I probably did a whole lot of other things too, but I don't remember
   because I lost my list when I got a new computer.
-
-v4.7.1 - What's new:
-- Probably the fastest released Vincula update ever, oi.
-- Fixes the OCX installation bug that was in 4.7.  Only affected some
-  people that were upgrading.  Anyone installing it new wasn't being
-  affected by this bug.
-- Fixes the Cancel button in the msn.names dialog, so that it won't
-  clear your Recent Rooms list, and your stored passwords.
-- To make up for the mistakes, a new $msn.pass password generator is
-  in there, instead of only using letters and numbers it will use any
-  character between $chr(33) and $chr(255), except for , and : since
-  MSN won't allow them in passwords.
-- Errors from the MSN Lookups are now hidden, so that they won't bother
-  you anymore.  Also, when it gets an Error 908, it will automatically
-  reset the lookup connection so that it fixes it.
 
 For old What's New lists, see the end of this file.
 
@@ -214,22 +230,28 @@ You use -g, -c, and -gc/-cg the same way as this, in all of these
 commands. I only gave this as an example.
 
 /joinurl http://chat.msn.com... [key]
-------------------------------------------
+-------------------------------------
 Joins the room based on the address for the room.
 It's not very practical to use this for a groups room, since it won't
 understand a groups room's URL.
 
 /joinhex 2523526F6F6D4E616D65 [key]
-----------------------------------------
+-----------------------------------
 Joins a room via the hex name.  Use -g to join as a Guest.
 If you use -c instead of -g, it will join a groups Room
 
 /joins [-k key] Room Name
-------------------------------------
+-------------------------
 Joins a room that has spaces in the name.
 -k allows you to use a key, like this:
 /joins -k somekey My Chat Room
 That would join the room "My Chat Room" using the key "somekey".
+
+/msn.ipjoin [cid] IP Nickname %#RoomName
+----------------------------------------
+Joins a room without looking it up, by just connecting straight to the
+specified IP address.  If a valid [cid] is given, Vincula will use that
+Status window to connect.
 
 -----------------------------------------------------------------------
 
@@ -703,6 +725,21 @@ Available at: http://www.mircscripts.org/comments.php?id=1439
 
 Old What's New lists:
 
+v4.7.1 - What's new:
+- Probably the fastest released Vincula update ever, oi.
+- Fixes the OCX installation bug that was in 4.7.  Only affected some
+  people that were upgrading.  Anyone installing it new wasn't being
+  affected by this bug.
+- Fixes the Cancel button in the msn.names dialog, so that it won't
+  clear your Recent Rooms list, and your stored passwords.
+- To make up for the mistakes, a new $msn.pass password generator is
+  in there, instead of only using letters and numbers it will use any
+  character between $chr(33) and $chr(255), except for , and : since
+  MSN won't allow them in passwords.
+- Errors from the MSN Lookups are now hidden, so that they won't bother
+  you anymore.  Also, when it gets an Error 908, it will automatically
+  reset the lookup connection so that it fixes it.
+
 v4.7 - What's new:
 - Now uses Neo-Vortex's M$NChatX OCX instead of the patched one it was
   using before.  This new OCX allows me to re-enable the "Join Room
@@ -975,4 +1012,4 @@ v3.5 - What's new:
 v3.4 - Initial release
 
 -----------------------------------------------------------------------
-Copyright © 2002-2003 eXonyte                  Last Updated: 07/18/2003
+Copyright © 2002-2003 eXonyte                  Last Updated: 09/14/2003
