@@ -1,44 +1,73 @@
-Vincula v3.6 - eXonyte's MSN Chat connection script
+Vincula Neo (v4.0) - eXonyte's New MSN Chat connection script
 
-Date: June 19, 2002
+Date: August 23, 2002
 
 -----------------------------------------------------------------------
 
-Requires mIRC 6.x, only tested in 6.01. Should work in 6.02.
-WILL NOT work in mIRC 5.91 or lower.
+Requires mIRC 6.x, only tested in 6.01 and 6.03. Should work in 6.02.
+WILL NOT work at all in mIRC 5.91 or lower.
 
 If you are using a script or addon that changes the way mIRC displays
-any events, especially a theme system, then Vincula will likely
-conflict with it.  MTS engine support may be added at a future date to
-correct this, or the display events can be modified at will.
+any events, especially a theme system, then Vincula's decoder will
+likely conflict with it.  MTS engine support may be added at a future
+date to correct this, or the display events can be modified at will.
 
 -----------------------------------------------------------------------
 
-v3.6 - What's new:
-- nHTMLn had an unofficial update at http://www.mircscripts.org that
-  fixes it for mIRC 6.x, so I added alot of nHTMLn related features.
-- Changed "View Profile" so that it displays it in mIRC directly
-  instead of opening an Internet Explorer window.
-- Made the /msn.getpp auto passport grabber even more automatic. All
-  you need to do now is use the command, sign in to your passport, and
-  Vincula handles the rest.
-- Added /msn.roomlist command and "View MSN Room List..." popup. Opens
-  an nHTMLn window in mIRC to one of the categories on MSN, and when
-  you click a link on the page Vincula will join the room
-  automatically. See the section below for /msn.roomlist for a
-  description of everything this command allows.
-- Fixed an exploit that could result in your being "moofed" from MSN.
-- Added an "Extra Options" tab to the /msn.setup dialog that includes a
-  few extra options (more to come in the future):
-  - Time Reply changing (you can use %vars and $identifiers in it)
-  - Show user's profile type when they join a room
-- Fixed a bug where the Random Font Color option wasn't being set right
-
+v4.0 - What's new:
+- Rewrite the entire connection process, depending on your connection
+  and the speed of your computer, it may be over twice as fast at
+  joining rooms!  It should also be alot more reliable in connecting,
+  so those of you that were having problems before should try it out
+  and let me know.
+- You can now join Community rooms using your Passport.
+- The Room Creation dialog now allows making rooms in other countries
+- The Room Creation dialog also can now be opened anytime using the new
+  /msn.makeroom command.
+- In the Room Creation dialog, you can use a hex room name to make the
+  room. No, this does not let you magically put the room at the top of
+  the room list!
+- When you join a room with a long name (over 90 characters), Vincula
+  will now strip the room name down to the right side instead of the
+  left side.  Now telling which !!!!!!! rooms you're in will be easier
+  to do, hehe.
+- When someone with a too-long name enters the room, Vincula will
+  refresh the nickname list so that you can actually kick them and such
+  from the right-click popup menus.
+- Vincula now can now store multiple Passports, and easily switch
+  between them.
+- Rewrote the Passport Autoupdater again.  Now it will only update the
+  PassportTicket and PassportProfile, but it doesn't matter because
+  Vincula Neo doesn't need the MSNREGCookie to connect anymore.  It is
+  also very fast, on my DSL I update in less than 1 second sometimes!
+- Fixed Erroneous Nickname Disconnect bug.
+- Vincula now stores both owner and host keys for rooms, see the new
+  $msn.ownerkey and $msn.hostkey identifiers below.
+- Added buttons to /msn.setup to clear the stored owner/host key lists.
+- Added sound support. Now you can make Vincula sound like MSN Chat.
+- Added a room hop: /hop
+- Added clone hop: /clone nickname
+- Added /msn.create command for quick/scripted room creation.
+- Added Recent rooms list (stores the last 10 rooms and the way you
+  joined them, such as Normal, Guest, etc.)
+- Added Auto-rejoin when kicked option.
+- Added Disable Whispers option (just like MSN's).
+- Got rid of the old COM Registry reading code and now uses a registry
+  reading DLL instead which is slightly faster and more compatible. If
+  Vincula gave you COM errors before, it shouldn't anymore.
+- Bunches of other little tweaks, tiddles, and tamperings that I've
+  forgotten about because I was too lazy to take notes.
+  
 For old What's New lists, see the end of this file.
 
 -----------------------------------------------------------------------
 
-Make sure vincula.mrc and nHTMLn_2.9.dll are in the same folder, and
+Setting up Vincula Neo:
+
+If you downloaded the version of Vincula Neo that comes with mIRC, you
+can skip this first part, it's all done automatically for you.
+
+Make sure vincula.mrc and nHTMLn_2.92.dll are in the same folder, and
 then load ONLY vincula.mrc into mIRC.  If you don't know how to load a
 script, then in mIRC type:
 
@@ -47,50 +76,97 @@ script, then in mIRC type:
 in any mIRC window and choose vincula.mrc from the list, from
 whatever folder you had previously unzipped it to.
 
-You will get a message saying that the script has been loaded, and then
-it will perform various one-time initialization steps.  It will also
-tell you your current UserData1 key, and finish by opening the script
-options dialog, which can be reopened any time by typing: /msn.setup
+After the script is loaded, it will perform various one-time
+initialization steps.  It will also tell you your current UserData1
+key, and finish by opening the script options dialog, which can be
+reopened any time by typing: /msn.setup
 
-You will also need to load your passport info on a daily basis, unless
-you always use Guest mode.  This process is described below.
-
-For the most part, this script can be controlled by popups and dialogs,
-you can access anything important by right-clicking and choosing the
-items in the "Vincula" menu.  You can also choose some things from the
-mIRC Command menu at the top, in between DCC and Window, in the
-"Vincula" submenu.
+Once this dialog is opened, I recommend adding a passport to the stored
+passports list on the Passport tab.  If you don't do that, then you
+will only be able to join rooms as a Guest.
 
 -----------------------------------------------------------------------
 
-To load your passport information so that you can connect through
-passport:
+Adding Passports:
 
-The easiest way is to click the Refresh Passport button in the Vincula
-Options dialog, or choose "Update Passport information" from one of the
-Vincula menus (either in the Status window, or in the mIRC menubar).
+To add a passport to Vincula Neo, open the Setup dialog by typing:
 
-The rest all very simple to figure out, it's just like logging in to a
-normal MSN Chat room, but for those who would like an explanation:
+/msn.setup
 
-Vincula will scan your Internet Explorer cache for a moment, and then
-it will open a window that asks for you to sign in to your passport.
+and go to the Passports tab.  On this tab, click the Add button on the
+left.
 
-All you need to do is enter your login information, and it will sign in
-to the MSN room called TheLobby.
+A new dialog will open, which is where you enter the passport info.
+The only information that you MUST have, is the Entry Name (the name
+that Vincula uses to refer to the passport) and the e-mail address. You
+can choose to enter any of the other options if you want.
 
-Before the room is even displayed (unless perhaps you have a very fast
-computer), it will Logout of your passport, close the window, and then
-it will say whether your passport update was successful or not.
+If you leave the nickname blank, Vincula will default to using either
+the nickname that is linked by the MSNREGCookie (explained more below),
+or the nickname that is set in your mIRC.  If you put in a nickname,
+then Vincula will always use that nickname when you're connecting with
+that passport, unless you enter another one in the "Enter Name" prompt
+when you connect (which can be turned off).
 
-For the curious, all Vincula is doing while scanning the cache, is it
-is making sure it reads the file that contains your current passport
-info, and not a file that contains outdated info.
+If you don't enter a password, then Vincula will ask you for a password
+every time it updates that passport's information.  If you do enter the
+password, then Vincula will never ask you for it.
+
+The MSNREGCookie is a piece of your passport information that Vincula
+can't automatically update, but it is also unneeded.  If you want
+Vincula to automatically use your passport's nickname, then you will
+either need to copy and paste the MSNREGCookie from the View Source of
+an MSN Chat room, or you will have to do a manual update.  Once you
+have set the MSNREGCookie in Vincula, it shouldn't expire like the rest
+of your passport info, so you shouldn't have to change it very often,
+if at all.  Vincula will work just fine even if you never give it an
+MSNREGCookie though.  The only drawback is that it will not auto detect
+the nickname that goes with this passport, you will have to put it in
+on your own.
+
+You do not need to bother with the PassportTicket and PassportProfile.
+They are the other two pieces of the passport information.  They are
+required for Vincula to be able to use the passport, but they will
+automatically be retrieved when you refresh the passport so you don't
+need to worry about typing them in on your own.
+
+The Profile Type dropbox lets you choose which of the icons you want
+MSN Chat users to see next to your name.  Vincula cannot autodetect
+this, and it honestly doesn't care, so feel free to choose any profile
+icon that you want.
 
 -----------------------------------------------------------------------
 
-The manual way to update your passport info, if the simple method
-doesn't work, is as follows:
+Editing Passports:
+
+You can edit a stored passport's information by going to the /msn.setup
+dialog, going to the Passports tab, choosing a passport, and clicking
+the Edit button.
+
+You can also edit your current passport by typing:
+
+/msn.editpp
+
+or choosing "Edit Passport information" from the right-click menu in
+the Status Window or from the Commands menu on the toolbar.  If you are
+unning Vincula with another script loaded, the Commands menu may be
+renamed, so check the menu in between the DCC and Window menus.
+
+Any piece of the passport information can be edited except for the
+Entry Name.  If you wish to rename a passport at this time, then you'll
+have to delete it and re-add it with a different Entry Name, sorry!
+
+-----------------------------------------------------------------------
+
+Updating Passport info:
+
+To update your current passport info, just type /msn.getpp in any
+window, or choose "Update Passport information (auto)..." from a popup
+menu.  You can also go to the Passports tab in /msn.setup, select a
+passport, and hit Refresh.
+
+If for some reason you need to update your passport info manually,
+or if you want to autoupdate the CLSID, then do as follows:
 
 Go to http://chat.msn.com and join any room (even one that doesn't
 exist).
@@ -113,15 +189,23 @@ info.
 
 Joining a room:
 
-After issuing any of the below room-join commands, the script will ask
-you for a nickname.  This DOES allow you to use almost any nickname you
-desire.  If you want to use a unicode name, make sure you check the box
-that says "Name is in Unicode format."  If you are using plain ASCII in
-the name (such as directly typing Alt+0169 to get ©), then leave the
-box unchecked.  Also, if you leave the name entry box blank, Vincula
-will use an appropriate default nickname, either the Passport's own
-nickname or your current nickname with Guest_ (mIRC will show this as
-> instead of Guest_) added on to it.
+You can usually use /msn.roomlist to join a room. That's likely the
+simplest way to get into a room. If you already know the name of the
+room you want to join though, you may want one of these commands.
+
+Unless you've turned it off, after using any of the below room-join
+commands, Vincula will ask you for a nickname.  This DOES allow you to
+use almost any nickname you desire.  If you want to use a unicode name,
+make sure you check the box that says "Name is in Unicode format."  If
+you are using plain ASCII in the name (such as directly typing Alt+0169
+to get ©), then leave the box unchecked.  Also, if you leave the name
+entry box blank, Vincula will use an appropriate default nickname.
+
+All of the below commands support the -g and -c options, as well as 
+combining the two as either -gc or -cg.
+-g joins a room as a guest.
+-c joins a community room using your passport.
+-cg or -gc joins a community room as a guest (like the real thing).
 
 /msn %#RoomName [key]
 ---------------------
@@ -131,46 +215,40 @@ will use this key when joining.
 /msn -g %#RoomName [key]
 ------------------------
 Joins a room using a Guest nickname (you will be asked for a name).
-If you use -c instead of -g, it will join a Community Room
+You use -g, -c, and -gc/-cg the same way as this, in all of these
+commands. I only gave this as an example.
 
-/joinurl [-g] http://chat.msn.com... [key]
+/joinurl http://chat.msn.com... [key]
 ------------------------------------------
-Joins the room based on the address for the room.  If you want to join
-in Guest mode, use -g just like in the /msn command.
-If you use -c instead of -g, it will join a Community Room, though in
-this case it's not very practical, since it won't understand a
-community room's URL.
+Joins the room based on the address for the room.
+It's not very practical to use this for a community room, since it
+won't understand a community room's URL.
 
-
-/joinhex [-g] 2523526F6F6D4E616D65 [key]
+/joinhex 2523526F6F6D4E616D65 [key]
 ----------------------------------------
 Joins a room via the hex name.  Use -g to join as a Guest.
 If you use -c instead of -g, it will join a Community Room
 
-/joins [-g|-k key|-gk key] Room Name
+/joins [-k key] Room Name
 ------------------------------------
 Joins a room that has spaces in the name.
-You can use either -g, -k, or both. -g of course joins as a Guest. -k
-allows you to use a key, like this:
+-k allows you to use a key, like this:
 /joins -k somekey My Chat Room
-That would join the room "My Chat Room" using the key "somekey". If you
-want to combine -g and -k, just type it as either -gk or -kg and
-include the key, for example:
-/joins -gk somekey My Chat Room
-If you use -c instead of -g, it will join a Community Room
+That would join the room "My Chat Room" using the key "somekey".
 
 -----------------------------------------------------------------------
 
-Other commands:
+Commands:
 
 /msn.setup
 ----------
 Lets you set the font that MSN users will see, along with a bunch of
 other options for the script (including those below).  If you want to
 use a font that's not on the list just type the name in, Vincula
-doesn't care.
+doesn't care if you really have the font or not.
 
 On the General tab:
+    Here you can set your font, as well as various Chatting options.
 Decode incoming text:
     Passes most incoming messages through the script's Unicode decoder
     so that names and text which use special characters can be read.
@@ -187,19 +265,56 @@ Encode outgoing text:
     This option will encode any outgoing text, so that MSN Chat users
     will actually be able to see any special characters you type, such
     as † or §.
-Profile Dropbox:
-    Makes MSN Chat users see one of the the little profile icons next
-    to your name in the room's user list.  This icon is the little guy
-    or girl that you may have seen next to people's names on MSN Chat.
+Disable Whispers:
+    Just like in MSN Chat, this option turns off new incoming whispers.
+Rejoin when kicked:
+    This will make Vincula try to re-join a room when you get kicked
+    out of it.  If you're banned, you probably won't be able to get
+    back in.
+    
+On the Passport tab:
+    You use this tab to manage your passports. You can Add, Edit,
+    Delete, or Refresh, any of your passports, and you can set other
+    connecting related options.
+Don't ask for nickname when connecting with passport
+    Self explanatory, tells Vincula not to bug you about the nickname
+    you want to use to connect, when you're using a Passport.
+Don't ask for nickname when connecting as a guest
+    Also self explanatory, tells Vincula not to ask for a nickname when
+    you're connecting as a Guest.
+Auto update info if older than X hours
+    Just like it says, if you try to connect using a passport that was
+    not refreshed in the past X hours (X being whatever you set), then
+    Vincula will automatically update it before it tries to connect.
 
-On the Extra Options tab:
+On the Sounds tab:
+    Here you can set sounds for various chat room events. Click the ...
+    button to select a sound, or type in the filename yourself. Click
+    the name of the sound event to preview your selected sound.
+
+On the Extra tab:
+    This tab includes a few other options that wouldn't fit anywhere
+    else, so I put them here.
 Time Reply:
     Lets you change the time reply that people get when they check your
     local time.  You can use $identifiers and %variables if you like.
     The default button restores the time reply to match MSN Chat's.
+MSN Chat CLSID:
+    When MSN updates the MSN Chat control, the identifier for it that's
+    called the Class ID or CLSID, changes.  In order for Vincula to
+    work right, it needs to know the current CLSID.  It will
+    automatically update the CLSID if you do a manual passport update,
+    or you can change it by editing it right here.  You can always find
+    the current CLSID at: http://exonyte.dyndns.org/msn.php
+    The default button sets the CLSID to MSN Chat Control 4.2's CLSID.
 Show user's profile type upon entry:
     When someone enters the room, Vincula will check what type of
     profile they have and tell you right below the Join message.
+Clear stored Owner keys and Clear stored Host keys:
+    These buttons will clear Vincula's Owner and Host key lists.  It
+    is probably a good idea to do this every so often, just be aware
+    that for Vincula to remember the keys for a room, you should re-
+    prop them after clearing.
     
 /msn.roomlist
 -------------
@@ -208,50 +323,104 @@ When you click a link to a room, Vincula will ask you how to join the
 room. You can choose to join through Vincula, either using your
 passport or as a guest, or you can join using the MSN Chat Control,
 either as a guest or using the passport info that is stored in Vincula.
-You can only have one MSN Chat window open at a time though or there
-will likely be problems. Also, if a room link is too long then you
-can't click it to join it. This is due to an apparent nHTMLn or mIRC
-limitation and there's nothing I can do about it. I suggest you right
-click and choose Copy Shortcut, and then use /joinurl to join the room
-through Vincula.
-
-
-/msn.getpass <room>
--------------------
-Displays the last stored password of <room> and also copies it to the
-clipboard.
-
-/msn.geturl <room>
-------------------
-Displays the URL for <room> and also copies it to the clipboard.
+If a room link is too long then you can't click it to join it. This is
+due to an apparent nHTMLn or mIRC limitation and there's nothing I can
+do about it. I suggest you right click and choose Copy Shortcut, and
+then use /joinurl to join the room through Vincula.
 
 /msn.getpp
 ----------
-Use this to update your passport info, according to the instructions
-that are above.
+Use this to update your currently selected passport info.
 
 /msn.mgetpp
 -----------
-Use this to update your passport info the old way, also according to
-instructions given above.
+Use this to update your passport info the manual way, according to the
+instructions listed above.
 
 /msn.editpp
 -----------
-Opens a dialog so that you can edit your passport information, or enter
-it manually.
+Opens a dialog so that you can edit your current passport information.
+
+/msn.create [-c] <room creation commands>
+-----------------------------------------
+This is recommended only for popups, scripts, or other things.  It will
+send a room creation command directly to MSN. If you use the -c option,
+then it will create it as a community room instead of a normal room.
+The format of the room creation command is:
+
+[Category] [%#Room] [Topic] [Modes] [Locale] [Language] [Password]
+
+[Category] is the two-letter category code for where you want the room
+to be. All community rooms should be UL (Unlisted). For a list of the
+available categories, look at the /msn.makeroom dialog.
+[%#Room] of course is the room name.
+[Topic] is a specially formatted room topic. I recommend you just use -
+and set the topic once you're in the room.
+[Modes] is either +f for the profanity filter to be on, +l X (where X is
+the number of users you want to allow into the room), or just -. If you
+like, you can use both f and l like this: +fl 100
+[Locale] is a language/country code. EN-US is a standard United States
+code. Look at the /msn.makeroom dialog to see the full list.
+[Language] is the appropriate language number for the room. You can see
+a list of the languages at http://exonyte.dyndns.org/msn.php#prop
+[Password] will be the Owner key for the room. When you join the room
+after it is created, you will need to enter this key with the /pass
+command so that you can be the room owner, and finish setting it up.
+
+/msn.getpass %#room
+-------------------
+Displays the last stored owner and host keys in %#room. If you don't
+specify %#room then it gives you the active room's keys.
+
+/msn.geturl / /msn.geturl h
+---------------------------
+Displays the URL for the active room and also copies it to the
+clipboard. If you just use "/msn.geturl" it gives you the plain rm URL,
+and if you use "/msn.geturl h" it gives you the rhx URL.
+
+/msn.loadpp Passport Name
+-------------------------
+This command lets you switch passports without having to open the
+/msn.setup dialog.  Just type /msn.loadpp and the name of any passport
+you have stored in Vincula, and it will switch to it.
+
+/msn.makeroom / /msn.makeroom %#room
+------------------------------------
+Opens the Room Creation dialog so that you can create a new room.  If
+you include %#room then it will automatically fill the room name box,
+and if it finds a matching ownerkey, it will fill the Password box too.
 
 /access
 -------
 In addition to setting access levels and such, you can type this
 command alone to open the Access List dialog for whatever room you type
-it in.
+it in.  All of the options in this dialog are pretty much self
+explanatory, so I won't go much in to detail, except that the Export
+and Import buttons let you save and load Access lists, which is great
+if you need to move a room, or recreate it, and don't want to lose
+the bans and such.
+
+/clone nickname
+---------------
+Will disconnect from the server, and reconnect to the same room, using
+whatever nickname you specify.
+
+/hop
+----
+Will leave and rejoin the current room without reconnecting, and will
+do so very fast.  Also, if you leave a room but stay connected, then
+you can type /hop in the server window and it will rejoin the room you
+were originally in.
 
 /msncolor <on|off>
-------------------
+/msncolour <on|off>
+-------------------
 Makes the script show you what colors the people are using to speak,
 also shows bold and underlined text. Does not show Italic, or the
 actual font. It's off by default, just because it bugs me.
-This option can also be changed from /msn.setup on a per-room basis.
+This option can also be changed from /msn.setup on a per-room basis.  I
+also added /msncolour for any users who prefer to spell it "colour" so
+that they have an easier time of it.
 
 /msndebug <on|off>
 ------------------
@@ -287,7 +456,7 @@ since you loaded this script.
 
 -----------------------------------------------------------------------
 
-Custom Identifiers:
+Identifiers:
 
 $msn.decode(text)
 -----------------
@@ -300,15 +469,41 @@ Returns text, as passed through the script's Unicode encoder. Most
 useful for using extended ascii characters (Alt codes) in speaking and
 in nicknames.
 
+$msn.hostkey / $msn.hostkey(%#room)
+-----------------------------------
+Returns the stored room host key for the active channel (if used in
+the editbox without %#room), or the host key for for %#room.
+
+$msn.geturl / $msn.geturl(h)
+----------------------------
+Returns the URL for the room in either rm (plain $msn.geturl) or rhx
+($msn.geturl(h)) format.
+
+$msn.ownerkey / $msn.ownerkey(%#room)
+-------------------------------------
+Returns the stored room owner key for the active channel (if used in
+the editbox without %#room), or the owner key for for %#room.
+This identifier replaces $msn.roompass
+
 $msn.pass / $msn.pass(N)
 ------------------------
 Makes a randomly generated password N characters long. If N is not
 supplied, it will create an eight character password.
 
-$msn.roompass / $msn.roompass(%#room)
--------------------------------------
-Returns the stored room owner key for the active channel (if used in
-the editbox without %#room), or the owner key for for %#room.
+$msn.ppdata(name,item)
+----------------------
+Gives you information for any passport you have stored in Vincula Neo.
+"name" is the name of any stored passport.
+"item" is one of the following items:
+
+email    - E-mail address
+passwd   - Password
+cookie   - MSNREGCookie
+ticket   - PassportTicket
+profile  - PassportProfile
+showprof - Profile type number
+updated  - The $ctime when the passport was last updated.
+           Use $asctime($msn.ppdata(name,updated)) for a readable date.
 
 $msn.tohex(text)
 ----------------
@@ -318,8 +513,7 @@ $msn.ud1
 --------
 Returns the current MSN Chat UserData1 entry from the registry. The MSN
 Chat Control uses this entry to set a room key when you create a new
-room through the MSN Chat website.  Vincula generates a random key and
-does not use the UserData1 in any way.
+room through the MSN Chat website.
 
 $msn.unhex(hex)
 ---------------
@@ -329,6 +523,14 @@ $joinurl(url)
 -------------
 Extracts the room hex from a URL, even if the URL does not have the hex
 for the room in it.
+
+$msn.roompass / $msn.roompass(%#room)
+-------------------------------------
+I don't recommend you use this anymore, see $msn.ownerkey above.  This
+identifier still works however, to maintain compatibility with older
+scripts.
+Returns the stored room owner key for the active channel (if used in
+the editbox without %#room), or the owner key for for %#room.
 
 -----------------------------------------------------------------------
 
@@ -343,7 +545,12 @@ msn.mirc. $+ $cid   <-- mIRC
 If you would prefer to send something to every socket, then just use
 msn.server.* or msn.mirc.* or if you're really daring, msn.*
 
-To get the room name for a socket, use:  $msn.get($sockname,room)
+To get the mIRC room name for a specific socket, use:
+$msn.get($sockname,room)
+
+To get the MSN room name for a specific socket, use:
+$msn.get($sockname,fullroom)
+
 You can also use $msn.get($cid,room)
 
 Unlike most scripts, this script converts WHISPER commands into
@@ -380,9 +587,14 @@ Since the nature of this script is multiple "ties" to MSN Chat, I think
 the name fits it well.
 
 If you would like to include this MSN connection addon with your own
-script, I only ask that it remain completely unmodified, except for the
-text display events at the beginning of the script as was mentioned in
-the above section.
+script:
+1) Make sure you mention that it was written by eXonyte.
+   If you modified it in any way, please say so.
+2) Give my website address:  http://exonyte.dyndns.org
+
+If you do these two things, then you don't even have to ask my
+permission to include it.  If your modifications fixed any bugs, please
+let me know so that I can add the fixes to the next version.
 
 This addon contains a few things that I did not write:
 
@@ -392,18 +604,37 @@ Available at: http://www.mircscripts.org/comments.php?id=1225
 Truetype Font Attribute reader by Kamek
 Available at: http://www.mircscripts.org/comments.php?id=1341
 
-The COM Registry Reading identifier was also written by someone else
-but I found it on a message board somewhere, and they claimed they got
-it from the mircscripts.org Web Board.  If someone can claim ownership
-of the code, please let me know.
+Registry DLL for mIRC v1.05 is © 1999 DragonZap
+Available at: http://www.dim-bulb.net/~dragonzap/dlls/
 
 The nHTMLn DLL is © 2001 Necroman
 Available at: http://www.wot.net/~necroman/nn2.htm
-Unofficially Updated to version 2.91 by Dan
+Unofficially Updated to version 2.92 by Dan
+Available at: http://www.mircscripts.org/comments.php?id=1439
 
 -----------------------------------------------------------------------
 
 Old What's New lists:
+
+v3.6 - What's new:
+- nHTMLn had an unofficial update at http://www.mircscripts.org that
+  fixes it for mIRC 6.x.
+- Changed "View Profile" so that it displays it in mIRC directly
+  instead of opening an Internet Explorer window.
+- Made the /msn.getpp auto passport grabber even more automatic. All
+  you need to do now is use the command, sign in to your passport, and
+  Vincula handles the rest.
+- Added /msn.roomlist command and "View MSN Room List" popup. Opens an
+  nHTMLn window in mIRC to one of the categories on MSN, and when you
+  click a link on the page Vincula will join the room automatically.
+  See the section below for /msn.roomlist for a description of
+  everything this command allows.
+- Fixed an exploit that could result in your being "moofed" from MSN.
+- Added an "Extra Options" tab to the /msn.setup dialog that includes a
+  few extra options (more to come in the future):
+  - Time Reply changing (you can use %vars and $identifiers in it)
+  - Show user's profile type when they join a room
+- Fixed a bug where the Random Font Color option wasn't being set right
 
 v3.5 - What's new:
 - The filename will from now on just be "vincula.mrc" so that you can
@@ -443,3 +674,6 @@ v3.5 - What's new:
   my own experimenting and testing.
 
 v3.4 - Initial release
+
+-----------------------------------------------------------------------
+Copyright © 2002 eXonyte                       Last Updated: 08/23/2002
