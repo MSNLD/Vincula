@@ -1,6 +1,6 @@
-Vincula Neo (v4.5) - eXonyte's MSN Chat connection script
+Vincula Neo (v4.6) - eXonyte's MSN Chat connection script
 
-Date: Monday, December 8, 2002
+Date: Monday, January 13, 2003
 
 -----------------------------------------------------------------------
 
@@ -17,20 +17,26 @@ date to correct this, or the display events can be modified at will.
 
 -----------------------------------------------------------------------
 
+v4.6 - What's new:
+- Should work fine on Windows 98/ME systems again. Sorry about 4.5!
+- Got rid of those annoying DOS boxes in the process of fixing 98/ME.
+- Added a Cancel button to the Enter Name dialog, just in case you'd
+  rather not connect.
+- Fixed the auto passport updater again.
+- Fixed the "line 3133" bug (would happen when you're joining a room,
+  but you're banned.
+- Fixed a bug with exporting the Access list from the /access dialog
+- Fixed the /msn.setup problem where it would remember to use colors.
+- Rewrote the manual passport updater (/msn.mgetpp) so it works again.
+- Redid the /access dialog so it uses one edit instead of multiple,
+  makes copying an entry's information much easier.
+
 v4.5 - What's new:
 - Made it switch between your installed MSN Chat OCX and a hacked one,
   so that it can connect again.
 - Had to disable the "Join using MSN Chat" options, might be able to
   fix them later, we'll see.
 - Fixed some other little bugs, don't remember what though.
-
-v4.4 - What's new:
-- Passport updater should be fixed now.  If the Windows XP Passport
-  signin box appears, just click Cancel and you'll be fine.
-- Fixed a bug when joining a room and you're banned.
-
-v4.3.1 - What's new:
-- Various test releases to fix the auto passport updater.
 
 For old What's New lists, see the end of this file.
 
@@ -340,11 +346,11 @@ do about it. I suggest you right click and choose Copy Shortcut, and
 then use /joinurl to join the room through Vincula.
 
 /msn.getpp
+/msnchat.update
 ----------
 Use this to update your currently selected passport info.
 
 /msn.mgetpp
-/msnchat.update
 ---------------
 Use this to update your passport info the manual way, according to the
 instructions listed above.
@@ -402,7 +408,7 @@ command so that you can be the room owner, and finish setting it up.
 Displays the last stored owner and host keys in %#room. If you don't
 specify %#room then it gives you the active room's keys.
 
-/msn.geturl / /msn.geturl h
+/msn.geturl | /msn.geturl h
 ---------------------------
 Displays the URL for the active room and also copies it to the
 clipboard. If you just use "/msn.geturl" it gives you the plain rm URL,
@@ -414,7 +420,7 @@ This command lets you switch passports without having to open the
 /msn.setup dialog.  Just type /msn.loadpp and the name of any passport
 you have stored in Vincula, and it will switch to it.
 
-/msn.makeroom / /msn.makeroom %#room
+/msn.makeroom | /msn.makeroom %#room
 ------------------------------------
 Opens the Room Creation dialog so that you can create a new room.  If
 you include %#room then it will automatically fill the room name box,
@@ -673,6 +679,14 @@ Available at: http://www.mircscripts.org/comments.php?id=1439
 
 Old What's New lists:
 
+v4.4 - What's new:
+- Passport updater should be fixed now.  If the Windows XP Passport
+  signin box appears, just click Cancel and you'll be fine.
+- Fixed a bug when joining a room and you're banned.
+
+v4.3.1 - What's new:
+- Various test releases to fix the auto passport updater.
+
 v4.3 - What's new:
 - Completely redesigned /msn.setup dialog
   - Added a font preview to the Fonts tab
@@ -907,4 +921,4 @@ v3.5 - What's new:
 v3.4 - Initial release
 
 -----------------------------------------------------------------------
-Copyright © 2002 eXonyte                       Last Updated: 12/08/2002
+Copyright © 2002-2003 eXonyte                  Last Updated: 01/13/2003

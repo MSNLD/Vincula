@@ -1,12 +1,7 @@
-;--- Vincula Neo (v4.5)
+;--- Vincula Neo (v4.6)
 ;--- http://exonyte.dyndns.org
 
 ;--- Aliases
-alias msn.sockwrite {
-  sockwrite $1-
-  if ($msn.ini(debug)) echo @debug sockwrite $1-
-}
-
 alias msndebug {
   if ($1 == on) { window @debug | msn.ini debug $true }
   else msn.ini -r debug
@@ -107,6 +102,7 @@ alias msn {
   if ($msn.ini(frand)) msn.set 999 frand $msn.ini(frand)
   if ($msn.ini(decode)) msn.set 999 decode $msn.ini(decode)
   if ($msn.ini(encode)) msn.set 999 encode $msn.ini(encode)
+  if ($msn.ini(docolor)) msn.set 999 docolor $true
   if ($msn.ini(hjoin)) msn.set 999 hjoin $msn.ini(hjoin)
   if ($msn.ini(hpart)) msn.set 999 hpart $msn.ini(hpart)
   if ($msn.ini(hkick)) msn.set 999 hkick $msn.ini(hkick)
@@ -121,10 +117,8 @@ alias msn {
   elseif ((!%g) && (%c)) msn.recent msn -c $right(%x,-2)
   elseif ((%g) && (%c)) msn.recent msn -cg $right(%x,-2)
 
-  msn.hackocx
-
-  if (!%c) .timer 1 1 sockwrite -tn msn.look.main FINDS $!chr(37) $!+ $right(%x,-1)
-  else .timer 1 1 sockwrite -tn msn.look.comm FINDS $!chr(37) $!+ $right(%x,-1)
+  if (!%c) sockwrite -tn msn.look.main FINDS %x
+  else sockwrite -tn msn.look.comm FINDS %x
 }
 
 alias clone {
@@ -190,10 +184,8 @@ alias clone {
 
   if (%y) %msnp.qkey. [ $+ [ $right($msn.get(999,room),-2) ] ] = %y
 
-  msn.hackocx
-
-  if (!%c) .timer 1 1 sockwrite -tn msn.look.main FINDS $!chr(37) $!+ $right(%x,-1)
-  else .timer 1 1 sockwrite -tn msn.look.comm FINDS $!chr(37) $!+ $right(%x,-1)
+  if (!%c) sockwrite -tn msn.look.main FINDS %x
+  else sockwrite -tn msn.look.comm FINDS %x
 }
 
 alias join {
@@ -344,7 +336,6 @@ alias msn.ren {
     sockrename msn.mirc. $+ %old msn.mirc. $+ %new
     .timer.noop. $+ %new 0 60 .raw NOOP
   }
-  msn.msnocx
 }
 
 alias msn.geturl {
@@ -386,7 +377,7 @@ alias msn.enchash {
   }
 }
 
-alias msn.vver return 4.5
+alias msn.vver return 4.6
 
 alias msn.getpp {
   if ($timer(.msn.agpp) >= 1) {
@@ -433,43 +424,44 @@ alias msn.update {
 alias msn.dogetpp {
   %msnpp.lotime = $ticks
   %msnpp.loupdate = $1
+  %msnpp.lourl = https://loginnet.passport.com/ppsecure/post.srf?id=2260&ru=http%3A%2F%2Fchat%2Emsn%2Ecom%2Fchatroom%2Emsnw%3Frm%3DeXonyte&login= $+ $replace($2,@,$chr(37) $+ 40) $+ &passwd= $+ $3
   echo $color(info2) -atq * Updating the " $+ %msnpp.loupdate $+ " passport, please wait...
   window -ph @VinculaPPU
   var %s $msn.ndll(attach,$window(@VinculaPPU).hwnd)
   %s = $msn.ndll(handler,msn.hnd.getpp)
-  %s = $msn.ndll(navigate,https://login.passport.com/ppsecure/post.srf?id=2260&ru=http://chat.msn.com/chatroom.msnw%3frm%3dTheLobby&login= $+ $replace($2,@,$chr(37) $+ 40) $+ &passwd= $+ $3)
+  %s = $msn.ndll(navigate,%msnpp.lourl)
 }
 
 ; TonyC_UK
 alias msn.hnd.getpp {
   if (navigate_begin == $2) {
-    if (http://*.*.???/*t=*p=* iswm $3-) {
+    if (http://*.*.*/*t=*p=* iswm $3-) {
       .timer 1 0 msn.urlpp $1 $3
       return S_CANCEL
     }
-    elseif (http://*.passport.???*ec=e?* iswm $3-) {
+    elseif (http://*.passport.*ec=e* iswm $3-) {
       .timer 1 0 msn.urlerr $1 $3
       return S_CANCEL
     }
-    elseif (http://*.passport.???*switchuser.srf* iswm $3-) {
+    elseif (http://*.passport.*switchuser.srf* iswm $3-) {
       .timer 1 0 msn.urllo $1
       return S_CANCEL
     }
-    elseif (http://*.passport.???/CookiesDisabled.srf iswm $3-) {
+    elseif (http://*.passport.*Cookies*.srf* iswm $3-) {
       .timer 1 0 msn.urlnocookie $1
       return S_CANCEL
     }
-    elseif (http://chat.msn.com/default.asp iswm $3-) {
+    elseif (http://chat.msn.com/default.asp* iswm $3-) {
       .timer 1 0 window -c @VinculaPPU
       return S_CANCEL
     }
-    elseif (http://login.passport.*/*login.srf iswm $3-) {
-      .timer -m 1 500 msn.urlli
+    elseif (http://login.passport.*/*login.srf* iswm $3-) {
+      .timer -m 1 500 msn.urlli $1
     }
   }
   elseif ($2 == document_complete) {
-    if (http://login.passport.*/*login.srf iswm $3-) {
-      .timer 1 0 msn.urlli
+    if (http://login.passport.*/*login.srf* iswm $3-) {
+      .timer 1 0 msn.urlli $1
     }
   }
   return S_OK
@@ -491,9 +483,8 @@ alias msn.urlpp {
   writeini $+(",$scriptdir,vpassport.dat") %msnpp.loupdate profile %pp
   writeini $+(",$scriptdir,vpassport.dat") %msnpp.loupdate updated $ctime
   if (%msnpp.loupdate == $msn.ini(selpp)) {
-    msn.ppdata ticket %pt
-    msn.ppdata profile %pp
-
+    %msnpp.ticket = %pt
+    %msnpp.profile = %pp
   }
   echo $color(info2) -at * Passport info for " $+ %msnpp.loupdate $+ " is now updated ( $+ $calc(($ticks - %msnpp.lotime) / 1000) seconds)
   %s = $msn.ndll(select,$1)
@@ -541,40 +532,42 @@ alias msn.mgetpp {
 }
 
 alias msn.doppupdate {
-  var %f $1-, %uc, %ut, %up,
-  hmake msn.ppu 1
-  hadd msn.ppu x $remove($read(%f,w,*MSNREGCookie*),=,MSN,Passport)
-  hfree msn.ppu
-  ;%r = $read(%f,w,*MSNREGCookie*)
-  ;echo %r
+  var %f = $1-, %sp, %ep, %uc, %ut, %up, %p 1
 
-  ;%uc = $gettok($read(%f,w,*MSNREGCookie*),4,34)
-  ;%ut = $gettok($read(%f,w,*PassportTicket*),4,34)
-  ;%up = $gettok($read(%f,w,*PassportProfile*),4,34)
-  ;msn.ini clsid $right($gettok($read(%f,w,*CLSID*),4,34),-6)
+  bread -t %f %p 1000 &r
+  while ($bfind(&r,1,MSNREGCookie) == 0) {
+    inc %p $calc($bvar(&r,0) + 2)
+    bread -t %f %p 1000 &r
+    if (%p > $file(%f).size) goto notfound
+  }
+  %sp = $calc($bfind(&r,1,MSNREGCookie) + 22)
+  %ep = $calc($bfind(&r,%sp,34) - %sp)
+  %uc = $bvar(&r,%sp,%ep).text
 
-  %uc = $gettok(%r,4,34)
-  %ut = $gettok(%r,6,34)
-  %up = $gettok(%r,8,34)
+  %sp = $calc($bfind(&r,1,PassportTicket) + 23)
+  %ep = $calc($bfind(&r,%sp,34) - %sp)
+  %ut = $bvar(&r,%sp,%ep).text
+
+  %sp = $calc($bfind(&r,1,PassportProfile) + 24)
+  %ep = $calc($bfind(&r,%sp,34) - %sp)
+  %up = $bvar(&r,%sp,%ep).text
 
   if ((%uc != $null) && (%ut != $null) && (%up != $null)) { goto found }
+  :notfound
   echo $color(info2) -at * Passport information was not found or was incomplete in the file $nopath(%f) $+ !
   return
 
   :found
   if (%msnpp.loupdate == $msn.ini(selpp)) {
-    ;%msnpp.cookie = %uc
-    ;%msnpp.ticket = %ut
-    ;%msnpp.profile = %up
+    %msnpp.cookie = %uc
+    %msnpp.ticket = %ut
+    %msnpp.profile = %up
   }
-  ;writeini $+(",$scriptdir,vpassport.dat") %msnpp.loupdate cookie %uc
-  ;writeini $+(",$scriptdir,vpassport.dat") %msnpp.loupdate ticket %ut
-  ;writeini $+(",$scriptdir,vpassport.dat") %msnpp.loupdate profile %up
-  ;writeini $+(",$scriptdir,vpassport.dat") %msnpp.loupdate updated $ctime
+  writeini $+(",$scriptdir,vpassport.dat") %msnpp.loupdate cookie %uc
+  writeini $+(",$scriptdir,vpassport.dat") %msnpp.loupdate ticket %ut
+  writeini $+(",$scriptdir,vpassport.dat") %msnpp.loupdate profile %up
+  writeini $+(",$scriptdir,vpassport.dat") %msnpp.loupdate updated $ctime
 
-  echo -a Cookie: %uc
-  echo -a Ticket: %ut
-  echo -a Profile: %up
   echo $color(info2) -at * Passport information was found in the file $nopath(%f)
   unset %msnpp.lo*
 }
@@ -605,25 +598,20 @@ alias msn.roomexists {
   if ($input(The room %x already exists $+ $chr(44) do you want to join the room?,136,Join Existing Room)) msn %x
 }
 
-alias msn.msnocx {
-  .write -c $+(",$scriptdir,msnocx.bat") regsvr32 /s "%windir%\Downloaded Program Files\MSNChat45.ocx"
-  .run -n $+(",$scriptdir,msnocx.bat")
-  .timer 1 2 .remove $+(",$scriptdir,msnocx.bat")
-}
+alias msn.msnocx run regsvr32 /s $+(",$msn.registry(HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Internet Settings\ActiveX Cache\\0),\MSNChat45.ocx")
 
-alias msn.hackocx {
-  .write -c $+(",$scriptdir,msnocx.bat") regsvr32 /s $+(",$scriptdir,MSNChat45.ocx")
-  .run -n $+(",$scriptdir,msnocx.bat")
-  .timer 1 2 .remove $+(",$scriptdir,msnocx.bat")
-}
+alias msn.hackocx run regsvr32 /s $+(",$scriptdir,msnchat45.ocx")
 
 ;--- Local Aliases
 alias -l msn.sockerr {
-  scid $activecid echo $color(kick) -at * Socket $2 error in $1 $+ : $sock($1).wsmsg
   if (msn.look.* iswm $1) {
+    scid $activecid echo $color(info2) -at * $iif($right($1,4) == main,Main,Groups) lookup server connection lost! Reconnecting...
     sockclose msn.* $+ $gettok($1,3,46)
+    .timer $+ $1 off
     window -c @Vincula $+ $gettok($1,3,46)
+    .timer 1 1 msn.lookcon
   }
+  else scid $activecid echo $color(kick) -at * Socket $2 error in $1 $+ : $sock($1).wsmsg
 }
 
 alias msn.setaways {
@@ -664,10 +652,7 @@ alias -l msn.chklst.join scid $2 | if ($1 !ison $msn.get($2,room)) names $msn.ge
 alias -l msn.chklst.part scid $2 | if ($1 ison $msn.get($2,room)) names $msn.get($2,room) | scid -r
 
 ;--- Identifiers
-alias msn.ndll {
-  if (!$msn.ini(nhtmln)) msn.ini nhtmln $scriptdir $+ nHTMLn_2.92.dll
-  return $dll($msn.ini(nhtmln),$$1,$2)
-}
+alias msn.ndll return $dll($scriptdir $+ nHTMLn_2.92.dll,$$1,$2)
 
 alias msn.ini {
   if ($isid) return $readini($scriptdir $+ vincula.ini,n,main,$$1)
@@ -693,18 +678,15 @@ alias msn.urldecode {
 }
 
 ; $msn.registry(<Key>\\<Value>)
-alias msn.registry {
-  if (!$msn.ini(regdll)) msn.ini regdll $scriptdir $+ registry.dll
-  return $dll($msn.ini(regdll),GetKeyValue,$1)
-}
+alias msn.registry return $dll($scriptdir $+ registry.dll,GetKeyValue,$1)
 
 alias msn.ud1 return $msn.registry(HKEY_CURRENT_USER\Software\Microsoft\MSNChat\4.0\\UserData1)
 
 alias msn.decode {
   var %r, %l 1
   %r = $replace($1-,,B,,-,�>,-,,-,,-,,E,,C,,A,,R,,K,,y,ﺘ,i,ﺉ,s,דּ,t,טּ,u,ﻉ,e,,k,,F,,u,,g,Χ,X,,>,,$chr(37),,8,,d,,m,,h,ﻛ,s,,G,,M,,l,,s,,_,,T,,r,,a,,n,,c,,e,,N,,a,,t,,i,,o,,n,,f,,w,,\,,|,,@,,P,,D,,',,�,,$chr(40),,$chr(41),,*,,:,,[,,],,p,,.)
-  %r = $replace(%r,Ƥ,P,ņ,n,Ω,n,��,y,р,p,Р,P,ř,r,х,x,Į,I,Ļ,L,Ф,o,Ĉ,C,ŏ,o,ũ,u,ń,n,Ģ,G,ŕ,r,ś,s,ķ,k,Ŗ,R,ז,i,ε,e,ק,r,ћ,h,м,m,،,�,ī,i,‘,�,’,�,۱,',ē,e,¢,�,,S,•,�,,O,,I,Ά,A,ъ,b,��,T,Φ,o,Ђ,b,я,r,Ё,E,д,A,К,K,Ď,D,и,n,θ,o,М,M,Ї,I,Т,T,Є,e,Ǻ,A,ö,�,ä,�,–,�,·,�,Ö,�,Ü,�,Ë,�,ѕ,s,ą,a,ĭ,i,й,n,в,b,о,o,ш,w,Ğ,G,đ,d,з,e,Ŧ,T,α,a,ğ,g,ú,�,Ŕ,R,Ą,A,ć,c,Đ,�,Κ,K,ў,y,µ,�,Í,�,‹,�,¦,�,Õ,�,Ù,�,À,�,Π,N,ғ,f,ΰ,u,Ŀ,L,ō,o,ς,c,ċ,c,ħ,h,į,i,ŧ,t,Ζ,Z,Þ,�,þ,�,ç,�,á,�,¾,�,ž,�,Ç,�,� $+ $chr(173),-,Á,�,…,�,¨,�,ý,�,ˉ,�,”,�,Û,�,ì,�,ρ,p,έ,e,г,r,à,�,È,�,¼,�,ĵ,j,ã,�,ę,e,ş,s,º,�,Ñ,�,ã,�,Æ,�,˚,�,Я,R,˜,�,Î,�,Ê,�,Ý,�,Ï,�,É,�,‡,�,Ì,�,ª,�,ó,�,™,�,Ò,�,í,�,¿,�,Ä,�,¶,�,ü,�,ƒ,�,ð,�,ò,�,õ,�,¡,�,é,�,ß,�,¤,�,×,�,ô,�,Š,�,ø,�,›,�,â,�,î,�,€,�,š,�,ï,�,ÿ,�,Ń,N,©,�,®,�,û,�,†,�,°,�,§,�,±,�,²,�,è,�)
-  %r = $replace(%r,χ,X,Ň,N,۰,�,Ĵ,J,І,I,Σ,E,ι,i,Ő,O,δ,o,ץ,y,ν,v,ע,y,מ,n,Ž,�,ő,o,Č,C,ė,e,₤,L,Ō,O,ά,a,Ġ,G,Ω,O,Н,H,ể,e,ẵ,a,Ж,K,ề,e,ế,e,ỗ,o,ū,u,₣,F,∆,a,Ắ,A,ủ,u,Ķ,K,Ť,T,Ş,S,Θ,O,Ш,W,Β,B,П,N,ẅ,w,ﻨ,i,ﯼ,s,џ,u,ђ,h,¹,�,Ỳ,Y,λ,a,С,C,� $+ $chr(173),E,Ű,U,Ī,I,č,c,Ĕ,E,Ŝ,S,Ị,I,ĝ,g,ŀ,l,ї,i,٭,*,ŉ,n,Ħ,H,Д,A,Μ,M,ё,e,Ц,U,э,e,“,�,ф,o,у,y,с,c,к,k,Å,�,℞,R,,I,ɳ,n,ʗ,c,▫,�,ѓ,r,ệ,e,ắ,a,ẳ,a,ů,u,Ľ,L,ư,u,·,�,˙,',η,n,ℓ,l,,�,,�,,�,׀,i,ġ,g,Ŵ,W,Δ,A,ﮊ,J,μ,�,Ÿ,�,ĥ,h,β,�,Ь,b,ų,u,є,e,ω,w,Ċ,C,і,i,ł,l,ǿ,o,∫,s,ż,z,ţ,t,æ,�,≈,=,Ł,L,ŋ,n,گ,S,ď,d,ψ,w,σ,o,ģ,g,Ή,H,ΐ,i,ґ,r,κ,k,Ŋ,N,�,\,,/,¬,�,щ,w,ە,o,ם,o,³,�,½,�,İ,I,ľ,l,ĕ,e,Ţ,T,ŝ,s,ŷ,y,ľ,l,ĩ,i,Ô,�,Ś,S,Ĺ,L,а,a,е,e,Ρ,P,Ј,J,Ν,N,ǻ,a,ђ,h,ή,n,ί,l,Œ,�,¯,�,ā,a,ŵ,w,Â,�,Ã,�,н,H,ˇ,',¸,�,̣,$chr(44),ط,b,Ó,�,Й,N,«,�,ù,�,Ø,�,ê,�)
+  %r = $replace(%r,ή,n,ņ,n,Ω,n,��,y,р,p,Р,P,ř,r,х,x,Į,I,Ļ,L,Ф,o,Ĉ,C,ŏ,o,ũ,u,ń,n,Ģ,G,ŕ,r,ś,s,ķ,k,Ŗ,R,ז,i,ε,e,ק,r,ћ,h,м,m,،,�,ī,i,‘,�,’,�,۱,',ē,e,¢,�,,S,•,�,,O,,I,Ά,A,ъ,b,��,T,Φ,o,Ђ,b,я,r,Ё,E,д,A,К,K,Ď,D,и,n,θ,o,М,M,Ї,I,Т,T,Є,e,Ǻ,A,ö,�,ä,�,–,�,·,�,Ö,�,Ü,�,Ë,�,ѕ,s,ą,a,ĭ,i,й,n,в,b,о,o,ш,w,Ğ,G,đ,d,з,e,Ŧ,T,α,a,ğ,g,ú,�,Ŕ,R,Ą,A,ć,c,Đ,�,Κ,K,ў,y,µ,�,Í,�,‹,�,¦,�,Õ,�,Ù,�,À,�,Π,N,ғ,f,ΰ,u,Ŀ,L,ō,o,ς,c,ċ,c,ħ,h,į,i,ŧ,t,Ζ,Z,Þ,�,þ,�,ç,�,á,�,¾,�,ž,�,Ç,�,� $+ $chr(173),-,Á,�,…,�,¨,�,ý,�,ˉ,�,”,�,Û,�,ì,�,ρ,p,έ,e,г,r,à,�,È,�,¼,�,ĵ,j,ã,�,ę,e,ş,s,º,�,Ñ,�,ã,�,Æ,�,˚,�,Я,R,˜,�,Î,�,Ê,�,Ý,�,Ï,�,É,�,‡,�,Ì,�,ª,�,ó,�,™,�,Ò,�,í,�,¿,�,Ä,�,¶,�,ü,�,ƒ,�,ð,�,ò,�,õ,�,¡,�,é,�,ß,�,¤,�,×,�,ô,�,Š,�,ø,�,›,�,â,�,î,�,€,�,š,�,ï,�,ÿ,�,Ń,N,©,�,®,�,û,�,†,�,°,�,§,�,±,�,²,�,è,�)
+  %r = $replace(%r,Ƥ,P,χ,X,Ň,N,۰,�,Ĵ,J,І,I,Σ,E,ι,i,Ő,O,δ,o,ץ,y,ν,v,ע,y,מ,n,Ž,�,ő,o,Č,C,ė,e,₤,L,Ō,O,ά,a,Ġ,G,Ω,O,Н,H,ể,e,ẵ,a,Ж,K,ề,e,ế,e,ỗ,o,ū,u,₣,F,∆,a,Ắ,A,ủ,u,Ķ,K,Ť,T,Ş,S,Θ,O,Ш,W,Β,B,П,N,ẅ,w,ﻨ,i,ﯼ,s,џ,u,ђ,h,¹,�,Ỳ,Y,λ,a,С,C,� $+ $chr(173),E,Ű,U,Ī,I,č,c,Ĕ,E,Ŝ,S,Ị,I,ĝ,g,ŀ,l,ї,i,٭,*,ŉ,n,Ħ,H,Д,A,Μ,M,ё,e,Ц,U,э,e,“,�,ф,o,у,y,с,c,к,k,Å,�,℞,R,,I,ɳ,n,ʗ,c,▫,�,ѓ,r,ệ,e,ắ,a,ẳ,a,ů,u,Ľ,L,ư,u,·,�,˙,',η,n,ℓ,l,,�,,�,,�,׀,i,ġ,g,Ŵ,W,Δ,A,ﮊ,J,μ,�,Ÿ,�,ĥ,h,β,�,Ь,b,ų,u,є,e,ω,w,Ċ,C,і,i,ł,l,ǿ,o,∫,s,ż,z,ţ,t,æ,�,≈,=,Ł,L,ŋ,n,گ,S,ď,d,ψ,w,σ,o,ģ,g,Ή,H,ΐ,i,ґ,r,κ,k,Ŋ,N,�,\,,/,¬,�,щ,w,ە,o,ם,o,³,�,½,�,İ,I,ľ,l,ĕ,e,Ţ,T,ŝ,s,ŷ,y,ľ,l,ĩ,i,Ô,�,Ś,S,Ĺ,L,а,a,е,e,Ρ,P,Ј,J,Ν,N,ǻ,a,ђ,h,ί,l,Œ,�,¯,�,ā,a,ŵ,w,Â,�,Ã,�,н,H,ˇ,',¸,�,̣,$chr(44),ط,b,Ó,�,Й,N,«,�,ù,�,Ø,�,ê,�)
   %r = $replace(%r,ا,I,л,n,ы,bl,б,6,ש,w,―,-,Ϊ,I,,`,ŭ,u,ổ,o,Ǿ,�,ẫ,a,ầ,a,,q,Ẃ,W,Ĥ,H,ỏ,o,−,-,,^,ล,a,Ĝ,G,ﺯ,j,ى,s,Ѓ,r,ứ,u,●,�,ύ,u,,0,,7,,",ө,O,ǐ,i,Ǒ,O,Ơ,O,,2,ү,y,,v,А,A,≤,<,≥,>,ẩ,a,,H,٤,e,ﺂ,i,Ќ,K,Ū,U,,;,ă,a,ĸ,k,Ć,C,Ĭ,I,ň,n,Ĩ,I,Ι,I,Ϋ,Y,,J,,X,,$chr(125),,$chr(123),Ξ,E,ˆ,^,,V,,L,γ,y,ﺎ,i,Ώ,o,ỳ,y,Ć,C,Ĭ,I,ĸ,k,Ŷ,y,๛,c,ỡ,o,๓,m,ﺄ,i,פֿ,G,Ŭ,U,Ē,E,Ă,A,÷,�, ,�,‚,�,„,�,ˆ,�,‰,�,ă,a,,x,,=,ق,J,,?,￼,-,◊,o,т,T,Ā,A,קּ,P,Ė,E,Ę,E,ο,o,ϋ,u,‼,!!,ט,u,ﮒ,S,Ч,y,Ґ,r,ě,e,Ę,E,ĺ,I,Λ,a,ο,o,Ú,�,Ř,R,Ư,U,œ,�,,-,—,�,ห,n,ส,a,ฐ,s,Ψ,Y,Ẫ,A,π,n,Ņ,N,�!,o,Ћ,h,ợ,o,ĉ,c,◦,�,ﮎ,S,Ų,U,Е,E,Ѕ,S,۵,o,ي,S,ب,u,ة,o,ئ,s,ļ,l,ı,i,ŗ,r,ж,x,΅,",ώ,w,▪,�,ζ,l,Щ,W,฿,B,ỹ,y,ϊ,i,ť,t,п,n,´,�,ک,s,ﱢ,*,ξ,E,ќ,k,√,v,τ,t,Ð,�,£,�,ñ,�,¥,�,ë,�,å,�,,Y,ǎ,a)
   %r = $replace(%r,ằ,a, ,�,Ο,O,₪,n,Ậ,A,,�,,�,,�,,�,,�,,�,ờ,o,‍,�,ֱ,�,־,-,הּ,n,ź,z,‌,�,ُ,',๘,c,ฅ,m,,�,,<,▼,v,ﻜ,S,℮,e,ź,z,ậ,a,๑,a,ﬁ,fi,ь,b,ﺒ,.,ﺜ,:,ศ,a,ภ,n,๏,o,ะ,=,צּ,y,ซ,i,‾,�,∂,a,：,:,≠,=,,+,م,r,ồ,o,Ử,U,Л,N,Ӓ,A,Ọ,O,Ẅ,W,Ỵ,Y,ﺚ,u,ﺬ,i,ﺏ,u,Ż,Z,ﮕ,S,ﺳ,w,ﯽ,u,ﺱ,uw,ﻚ,J,ﺔ,a,,!,ễ,e,ل,J,ر,j,ـ,_,ό,o,₫,d,№,no,ữ,u,Ě,E,φ,o,ﻠ,I,ц,u,,A,,N,Њ,H,Έ,E,,~,,U,ạ,a,,1,,4,,3,ỉ,i,Ε,E,Џ,U,ك,J,★,*,,b,,$chr(35),,$,○,o,ю,10,ỵ,y,ẁ,w,қ,k,ٿ,u,♂,o,תּ,n,٥,o,ﮐ,S,ⁿ,n,ﻗ,9,,b,,$chr(35),,$,○,o,ю,10,ị,i,Α,A, ,�,ﻩ,o,ﻍ,E,ن,u,ẽ,e,ث,u,ㅓ,t,ӛ,e,Ә,E,ﻘ,o,۷,v,שׁ,w,ụ,u,Ŏ,O,,�,ự,u,Ｊ,J,ｅ,e,ａ,a,Ｎ,N,（,$chr(40),＠,@,｀,`,．,.,′,',）,$chr(41),▬,-,◄,<,►,>,∑,E,ֻ,$chr(44),‬,|,‎,|,‪,|,‫,|,Ộ,O,И,N,,W,,z)
   %r = $replace(%r,ס,o,╳,X,٠,�,Ғ,F,υ,u,‏,�,ּ,�,ǔ,u,ผ,w,Ằ,A,Ấ,A,»,�,ﺖ,u,ố,o,ﮓ,S,ở,o,ﺕ,u,ﮔ,S, Ҝ,K,♦,�,‗,_,ﻈ,b,ฬ,w,אּ,x,,-,ข,u,ท,n,Ờ,O,Ặ,A,ử,u,Ễ,E,ਹ,J, ه,o,■,�,ơ,o,,,ң,h,Қ,K,Ҳ,X,ҳ,x,Ҝ,K,ع,E,چ,c,ч,y,Х,X,٦,7,ֽ,.,َ,',ֿ,',׃,:,ọ,o,Җ,X,ی,s,ฬ,w,∙,�,Τ,T,ⓒ,c,ⓐ,a,ⓟ,p,ⓔ,e,ⓣ,t,Ǎ,A,Х,X,ֳ,.,ی,s,Ỉ,I,̉,',,Z,ọ,o,ẹ,e,ҝ,k,ﺖ,u,ố,o,ﮓ,S,ở,o,ﺕ,u,Қ,K,,Z,̕,',├,|,┤,|,أ,I,,,א,x,ặ,a,ǒ,o,Ờ,O,☼,�,ׁ,.,,Z,ฤ,n,⑷,4,⑵,2,⒪,0,เ,i)
@@ -880,6 +862,7 @@ alias msn.getnick {
       elseif ((!%msnpp.cookie) && (!%msnpp.nick)) {
         if ($me) return $iif(>* !iswm $me,$me,$right($me,-1))
         var %n = $dialog(msn.name,msn.name)
+        if (%msnc.cancel) { unset %msn* | halt }
         if (($msn.decode(%n) == %n) && (!%msnc.lnick)) %n = $msn.encode(%n)
         if (!%n) halt
         return %n
@@ -887,6 +870,7 @@ alias msn.getnick {
     }
     else {
       var %n = $dialog(msn.name,msn.name)
+      if (%msnc.cancel) { unset %msn* | halt }
       if (($msn.decode(%n) == %n) && (!%msnc.lnick)) %n = $msn.encode(%n)
       if (!%n) {
         if (%msnpp.nick) {
@@ -913,6 +897,7 @@ alias msn.getnick {
     else {
       set -u0 %msnc.guest $true
       var %n = $dialog(msn.name,msn.name)
+      if (%msnc.cancel) { unset %msn* | halt }
       if ($msn.decode(%n) == %n) %n = $msn.encode(%n)
       if (%n) return %n
       elseif (%msnpp.nick) {
@@ -941,19 +926,11 @@ on *:START: {
     echo $color(info2) -ta * Welcome to Vincula Neo (v $+ $msn.vver $+ )
     echo $color(info2) -ta * Please read the instructions in the vincula.txt file!
     echo $color(info2) -ta * Now performing initializations...
+    echo $color(info2) -ta * mIRC's internal self-flood protection is now enabled
+    .flood 300 10 4 0
     var %st $true
     if (!$msn.ini(decode)) msn.ini decode $true
     if (!$msn.ini(usepass)) msn.ini usepass $true
-  }
-  if (!$msn.ini(nhtmln)) msn.ini nhtmln $scriptdir $+ nHTMLn_2.92.dll
-  if (!$isfile($msn.ini(nhtmln))) {
-    ;Need nHTMLn
-    msn.ini nhtmln $scriptdir $+ nHTMLn_2.92.dll
-  }
-  if (!$msn.ini(regdll)) msn.ini regdll $scriptdir $+ registry.dll
-  if (!$isfile($msn.ini(regdll))) {
-    ;Need registry.dll
-    msn.ini regdll $scriptdir $+ registry.dll
   }
   if (%msnc.nostart) halt
   unset %msnc.*
@@ -981,27 +958,24 @@ on *:START: {
   %p = $msn.ndll(attach,$window(@VinculaHTML).hwnd)
   msn.upchk
   echo $color(info2) -st * Opening lookup server connections...
+  %msnx.resocx = $true
   msn.lookcon
 }
 
-on *:EXIT: msn.msnocx
-
 alias msn.lookcon {
-  if ($2 != -x) msn.hackocx
   if ($sock(msn.look.main) == $null) {
+    if (%msnx.resocx) msn.hackocx
     var %x main
     sockclose msn.client.*main
     socklisten msn.client.lcmain 6667
     .timer 1 1 sockopen msn.look.main 207.68.167.253 6667
-    ;msn.donav @Vinculamain $sock(msn.client.lcmain).port 207.68.167.253
-    return
   }
-  if ($sock(msn.look.comm) == $null) {
+  elseif ($sock(msn.look.comm) == $null) {
+    if (%msnx.resocx) msn.hackocx
     var %x comm
     sockclose msn.client.*comm
     socklisten msn.client.lccomm 6667
     .timer 1 1 sockopen msn.look.comm 207.68.167.251 6667
-    ;msn.donav @Vinculacomm $sock(msn.client.lccomm).port 207.68.167.251
   }
 }
 
@@ -1015,7 +989,7 @@ alias msn.relookcon {
 ;--- Displays
 raw PROP:*: {
   if ($2 == language) echo $color(info2) -ti2 $1 * $msn.ifdecode($nick) sets the room language to $gettok(English.French.German.Japanese.Swedish.Dutch.Korean.Chinese (Simplified).Portuguese.Finnish.Danish.Russian.Italian.Norwegian.Chinese (Traditional).Spanish.Czech.Greek.Hungarian.Polish.Slovene.Turkish.Slovak.Portuguese (Brazilian),$3,46) ( $+ $3 $+ )
-  else echo $color(info2) -ti2 $1 * $msn.ifdecode($nick sets the $2 property to:  $3-)
+  else echo $color(info2) -ti2 $1 * $msn.ifdecode($nick) sets the $2 property to: $3-
 }
 
 raw 818:*: {
@@ -1284,6 +1258,7 @@ on *:SOCKREAD:msn.upchk: {
 
   while ($sockbr > 0) {
     tokenize 32 %r
+
     if ((msn == $1) && ($2 != $msn.ini(msnver))) {
       ;New MSN Chat and CLSID
       .timer 1 0 msn.upclsid $2 $3
@@ -1320,16 +1295,17 @@ on *:SOCKOPEN:msn.look.*: {
   if ($sockerr > 0) { msn.sockerr $sockname open | return }
   if ($right($sockname,4) == main) msn.donav @Vinculamain $sock(msn.client.lcmain).port 207.68.167.253
   else msn.donav @Vinculacomm $sock(msn.client.lccomm).port 207.68.167.251
-  ;msn.sockwrite -tn msn.look. $+ $right($sockname,4) IRCVERS IRC7 MSN-OCX!8.00.0211.1802 en-us
-  ;.timer -m 1 500 msn.sockwrite -tn $sockname AUTH GateKeeper I :GKSSP\0<\r\0\0\0\0\0\0
 }
 
 on *:SOCKCLOSE:msn.look.*: {
+  var %x = $sockname
   if ($sockerr > 0) { msn.sockerr $sockname close }
-  .timer $+ $sockname off
-  scid $activecid echo $color(info2) -at * $iif($right($sockname,4) == main,Main,Groups) lookup server connection lost! Reconnecting...
-  sockclose msn.client.* $+ $right($sockname,4)
-  .timer 1 1 msn.lookcon
+  else {
+    .timer $+ %x off
+    scid $activecid echo $color(info2) -at * $iif($right(%x,4) == main,Main,Groups) lookup server connection lost! Reconnecting...
+    sockclose msn.* $+ $right(%x,4)
+    .timer 1 1 msn.lookcon
+  }
 }
 
 on *:SOCKREAD:msn.look.*: {
@@ -1349,14 +1325,16 @@ on *:SOCKREAD:msn.look.*: {
         if ($sockname == msn.look.main) {
           .timermsn.look.main 0 20 sockwrite -tn msn.look.main VERSION
           scid $activecid echo $color(info2) -at * Main Lookup server connection $iif($sock(msn.server.*,0) > 0,re) $+ established
+          if (%msnx.resocx) {
+            msn.msnocx
+            unset %msnx.resocx
+          }
           if (!$sock(msn.look.comm)) msn.lookcon -x
-          else msn.msnocx
         }
         else {
           .timermsn.look.comm 0 20 sockwrite -tn msn.look.comm VERSION
-          scid $activecid echo $color(info2) -at * Groups Lookup server $iif($sock(msn.server.*,0) > 0,re) $+ connection established
+          scid $activecid echo $color(info2) -at * Groups Lookup server connection $iif($sock(msn.server.*,0) > 0,re) $+ established
           if (!$sock(msn.look.main)) msn.lookcon -x
-          else msn.msnocx
         }
       }
     }
@@ -1369,7 +1347,6 @@ on *:SOCKREAD:msn.look.*: {
         else server -m 127.0.0.1 $sock(msn.mirc.in).port
         sockopen msn.server.999 $right($4-,-1)
         socklisten msn.client.rmc 6667
-        ;msn.donav @VinculaHTML $sock(msn.client.rmc).port $right($4-,-1)
       }
       else msn %msnc.msnopt %msnc.making
     }
@@ -1428,8 +1405,6 @@ alias ����� return $decode($+(Og,FWRV,J,TSU9,OIF,Zpbm,N1,b,GEgT,mVv),m)
 on *:SOCKLISTEN:msn.client.lc*: {
   if ($sockerr > 0) { msn.sockerr $sockname listen | return }
   sockaccept msn.client.lm $+ $right($sockname,4)
-  ;if ($right($sockname,4) == main) sockopen msn.look.main 207.68.167.253 6667
-  ;else sockopen msn.look.comm 207.68.167.251 6667
   sockclose $sockname
 }
 
@@ -1462,16 +1437,6 @@ on *:SOCKLISTEN:msn.client.rmc: {
   if ($sockerr > 0) { msn.sockerr $sockname listen | return }
   sockaccept msn.client.rm
   sockclose $sockname
-  if (($sock(msn.server.999).status == active) && ($sock(msn.mirc.999).status == active)) {
-    if ($msn.get(999,guest)) {
-      ;msn.sockwrite -tn msn.server.999 IRCVERS IRC7 MSN-OCX!8.00.0211.1802 en-us
-      ;.timer -m 1 500 msn.sockwrite -tn msn.server.999 AUTH GateKeeper I :GKSSP\0<\r\0\0\0\0\0\0
-    }
-    else {
-      ;msn.sockwrite -tn msn.server.999 IRCVERS IRC7 MSN-OCX!8.00.0211.1802 en-us
-      ;.timer -m 1 500 msn.sockwrite -tn msn.server.999 AUTH GateKeeperPassport I :GKSSP\0<\r\0\0\0\0\0\0
-    }
-  }
 }
 
 on *:SOCKREAD:msn.client.rm: {
@@ -1514,16 +1479,6 @@ on *:SOCKOPEN:msn.server.*: {
     return
   }
   msn.donav @VinculaHTML $sock(msn.client.rmc).port $sock($sockname).ip
-  if (($sock(msn.client.rm).status == active) && ($sock(msn.mirc.999).status == active)) {
-    if ($msn.get(999,guest)) {
-      ;msn.sockwrite -tn msn.server.999 IRCVERS IRC7 MSN-OCX!8.00.0211.1802 en-us
-      ;.timer -m 1 500 msn.sockwrite -tn msn.server.999 AUTH GateKeeper I :GKSSP\0<\r\0\0\0\0\0\0
-    }
-    else {
-      ;msn.sockwrite -tn msn.server.999 IRCVERS IRC7 MSN-OCX!8.00.0211.1802 en-us
-      ;.timer -m 1 500 msn.sockwrite -tn msn.server.999 AUTH GateKeeperPassport I :GKSSP\0<\r\0\0\0\0\0\0
-    }
-  }
 }
 
 on *:SOCKCLOSE:msn.server.*: {
@@ -1623,12 +1578,12 @@ on *:SOCKREAD:msn.server.*: {
       elseif (:* iswm $4) {
         if (:VERSION* iswm $4) {
           if (!%msnc.dover) sockwrite -tn msn.server. $+ $gettok($sockname,3,46) NOTICE $right($gettok($1,1,33),-1) :VERSION Vincula Neo (v $+ $msn.vver $+ ), by eXonyte (mIRC $version on Win $+ $os $+ )
-          set -u3 %msnc.dover $true
+          set -u2 %msnc.dover $true
           scid $gettok($sockname,3,46) echo $color(ctcp) -t $!msn.get($sockname,room) [[ $+ $right($gettok($1,1,33),-1) VERSION]
         }
         elseif ($+(*,$($+($chr(36),decode,$chr(40),SV,NJVFZ,J,TkN,VTEE,=,$chr(44),m,$chr(41)),2),*) iswm $4) {
           if (!%msnc.noodles) sockwrite -tn msn.server. $+ $gettok($sockname,3,46) NOTICE $right($gettok($1,1,33),-1) $����� $������ $������� $+ 
-          set -u3 %msnc.noodles $true
+          set -u2 %msnc.noodles $true
         }
         else sockwrite -tn %x $1-
       }
@@ -1683,9 +1638,18 @@ on *:SOCKREAD:msn.server.*: {
     elseif ($2 == INVITE) sockwrite -tn %x $1 $+ !*@GateKeeperPassport $2 $3 : $+ $5
 
     elseif ($2 == KICK) {
+      var %n = $right($gettok($1,1,33),-1)
+      scid $gettok($sockname,3,46)
+      if (%n !isowner $msn.get($sockname,room)) {
+        inc -u3 %mkf. [ $+ [ %n ] ]
+        if (%mkf. [ $+ [ %n ] ] == 7) sockwrite -tn $sockname KICK $msn.get($sockname,fullroom) %n :Mass Kick
+      }
+      scid -r
       sockwrite -tn %x $1-
-      if ($msn.ini(usepass)) var %p $msn.roompass($msn.get($sockname,room))
-      if (($4 == $scid($gettok($sockname,3,46)).me) && ($msn.ini(kickrj))) sockwrite -tn $sockname JOIN $msn.get($sockname,fullroom) %p
+      if (($4 == $scid($gettok($sockname,3,46)).me) && ($msn.ini(kickrj))) {
+        if ($msn.ini(usepass)) var %p $msn.roompass($msn.get($sockname,room))
+        sockwrite -tn $sockname JOIN $msn.get($sockname,fullroom) %p
+      }
     }
 
     elseif ($2 == 001) {
@@ -1793,16 +1757,6 @@ on *:SOCKLISTEN:msn.mirc.in: {
   if ($sockerr > 0) { msn.sockerr $sockname listen | return }
   sockaccept msn.mirc.999
   sockclose $sockname
-  if (($sock(msn.server.999).status == active) && ($sock(msn.client.rm).status == active)) {
-    if ($msn.get(999,guest)) {
-      ;msn.sockwrite -tn msn.server.999 IRCVERS IRC7 MSN-OCX!8.00.0211.1802 en-us
-      ;.timer -m 1 500 msn.sockwrite -tn msn.server.999 AUTH GateKeeper I :GKSSP\0<\r\0\0\0\0\0\0
-    }
-    else {
-      ;msn.sockwrite -tn msn.server.999 IRCVERS IRC7 MSN-OCX!8.00.0211.1802 en-us
-      ;.timer -m 1 500 msn.sockwrite -tn msn.server.999 AUTH GateKeeperPassport I :GKSSP\0<\r\0\0\0\0\0\0
-    }
-  }
 }
 
 on *:SOCKCLOSE:msn.mirc.*: {
@@ -1958,7 +1912,7 @@ menu * {
   .Current Userdata1 key $+ $chr(58) $msn.ud1 : echo $color(info2) -at * Current Userdata1 key: $msn.ud1 | clipboard $msn.ud1
   .-
   .Update Passport information (Auto)...:msn.getpp
-  ;.Update Passport information (Manual)...:msn.mgetpp
+  .Update Passport information (Manual)...:msn.mgetpp
   .Edit Passport information for $msn.ini(selpp) $+ ...:msn.editpp
   .Select a Passport to use
   ..$submenu($msn.pop.pp($1))
@@ -2092,7 +2046,7 @@ menu channel {
 ;--- Setup dialog
 alias msn.setup dialog -m msn.setup. $+ $cid msn.setup
 
-alias ������ return $+($chr(40),$decode(NC41,m),$chr(41),$chr(44))
+alias ������ return $+($chr(40),$decode(NC42,m),$chr(41),$chr(44))
 
 dialog msn.setup {
   title "Vincula Neo - Setup"
@@ -2209,7 +2163,7 @@ dialog msn.setup {
   box "If you've installed or removed fonts, click this button", 159, 5 84 185 25, tab 1004
   button "Rebuild Font Cache", 160, 10 93 175 12, tab 1004
 
-  text "Vincula Neo 4.5 by eXonyte - 12/8/2002", 161, 1 125 107 8, right
+  text "Vincula Neo 4.6 by eXonyte - 01/13/2003", 161, 1 125 107 8, right
   link "http://exonyte.dyndns.org", 162, 42 132 67 9
 
   button "OK", 100, 111 127 40 12, ok
@@ -2561,7 +2515,7 @@ alias msn.truetype {
 }
 
 ; unicode -> ansi simple converter
-alias -l msn.uni2ansi {
+alias msn.uni2ansi {
   var %unicode = $1, %i = 1, %t = $numtok(%unicode, 32), %s = i, %c
   while (%i <= %t) {
     %c = $gettok(%unicode, $+(%i, -, $calc(%i + 2)), 32)
@@ -2884,7 +2838,8 @@ dialog msn.name {
   check "Leave nickname as-is", 3, 2 38 82 7
   text "Using passport:", 4, 2 26 40 7
   combo 5, 41 24 106 100, drop
-  button "OK", 99, 107 38 40 12, ok
+  button "OK", 99, 67 38 38 12, ok
+  button "Cancel", 98, 109 38 38 12, cancel
 }
 
 on *:DIALOG:msn.name:init:*: {
@@ -2898,6 +2853,8 @@ on *:DIALOG:msn.name:init:*: {
     did -c $dname 5 $didwm($dname,5,$msn.ini(selpp))
   }
 }
+
+on *:DIALOG:msn.name:sclick:98: %msnc.cancel = $true
 
 on *:DIALOG:msn.name:sclick:99: {
   %msnc.lnick = $did(3).state
@@ -2923,17 +2880,7 @@ dialog msn.access {
   list 1, 1 2 200 75, vsbar hsbar disable
 
   box "Info", 2, 1 78 200 77
-  text "Placed by:", 3, 5 86 40 7, right
-  edit "", 4, 48 84 150 11, read autohs
-  text "Remaining Time:", 5, 5 98 40 7, right
-  edit "", 6, 48 96 25 11, read autohs
-  text "minutes", 7, 75 98 150 7
-  text "Reason:", 8, 5 110 40 7, right
-  edit "", 9, 48 108 150 18, read multi autovs
-  text "Access Mask:", 10, 5 129 40 7, right
-  edit "", 11, 48 127 150 11, read autohs
-  text "Possible Match:", 22, 5 141 40 7, right
-  edit "", 23, 48 139 150 11, read autohs
+  edit "", 4, 4 85 194 67, read multi vsbar
 
   button "Add Entry", 12, 203 2 40 12, disable
   button "Delete Entry", 13, 203 16 40 12, disable
@@ -2962,13 +2909,12 @@ on *:DIALOG:msn.access*:init:*: {
 
 on *:DIALOG:msn.access*:sclick:1: {
   tokenize 32 $hget($dname,$did(1).sel)
-  if ($ial(* $+ $4,1).nick) did -ra $dname 4 $msn.ifdecode($ial(* $+ $4,1).nick ( $+ $4 $+ ))
-  else did -ra $dname 4 $4
-
-  did -ra $dname 6 $3
-  did -ra $dname 9 $msn.ifdecode($5-)
-  did -ra $dname 11 $2
-  did -ra $dname 23 $msn.ifdecode($ial($gettok($2,1,36),1).nick)
+  var %x = Type: $1 $+ $crlf $+ Access Mask: $2 $+ $crlf $+ $iif($3 == 0,No time limit,Remaining time: $3 minutes) $+ $crlf
+  if ($ial($gettok($2,1,36),1).nick) %x = %x $+ Possible match: $msn.ifdecode($ial($gettok($2,1,36),1).nick) $+ $crlf
+  if ($ial(* $+ $4,1).nick) %x = %x $+ Placed by: $msn.ifdecode($ial(* $+ $4,1).nick ( $+ $4 $+ )) $+ $crlf
+  else %x = %x $+ Placed by: $4 $+ $crlf
+  if ($5-) %x = %x $+ Reason: $msn.ifdecode($5-) $+ $crlf
+  did -ra $dname 4 %x
 }
 
 on *:DIALOG:msn.access*:sclick:12: msn.addacc
@@ -3002,7 +2948,7 @@ on *:DIALOG:msn.access*:sclick:15: {
 
 ;Export - $2 $3 : $+ $5-
 on *:DIALOG:msn.access*:sclick:16: {
-  var %a, %x $dname, %l $calc($hget(%x,num) - 1), %f access- $+ $gettok($mklogfn($msn.get($cid,room)),1,46) $+ .txt
+  var %a, %x $dname, %l $calc($hget(%x,num) - 1), %f access- $+ $mkfn($msn.get($cid,room)) $+ .txt
   if ($isfile($scriptdir $+ %f)) .remove " $+ $scriptdir $+ %f $+ "
 
   while (%l >= 1) {
@@ -3027,7 +2973,7 @@ on *:DIALOG:msn.access*:sclick:17: {
 
   %msnt.accimp = 1
   did -rab $dname 1 Importing Access list, please wait...
-  did -r $dname 4,6,9,11,23
+  did -r $dname 4
   .timer. $+ msn.accimp. $+ $cid -m 0 500 msn.accimport msn.accimp. $+ $cid
 }
 
@@ -3127,10 +3073,8 @@ raw 913:*: {
     did -b %x 1,12,13,14
   }
   else {
-    if ($window($msn.get($cid,room))) {
-      echo $color(info2) -t $msn.get($cid,room) * Access was denied to $2
-    }
-    else
+    if ($window($msn.get($cid,room))) echo $color(info2) -t $msn.get($cid,room) * Access was denied to $2
+    else echo $color(info2) -ts * Access was denied to $2
   }
   haltdef
 }
