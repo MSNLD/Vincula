@@ -1,0 +1,272 @@
+Vincula v3.4 - eXonyte's MSN Chat connection script
+
+Date: May 23, 2002
+
+-----------------------------------------------------------------------
+
+Requires mIRC 6.x, only tested in 6.01.
+WILL NOT work in mIRC 5.91 or lower.
+
+-----------------------------------------------------------------------
+
+Make sure vincula34.mrc and nHTMLn_2.9.dll are in the same folder, and
+then load vincula34.mrc into mIRC.  If you don't know how to load a
+script, then in mIRC type:
+
+//load -rs " $+ $sfile(*.mrc) $+ "
+
+in any mIRC window and choose vincula34.mrc from the list, from
+whetever folder you had previously unzipped it to.
+
+You will get a message saying that the script has been loaded, and then
+it will perform various one-time initialization steps.  It will also
+tell you your current UserData1 key, and finish by opening the script
+options dialog, which can be reopened any time by typing: /msn.setup
+
+You will also need to load your passport info on a daily basis, unless
+you always use Guest mode.  This process is described below.
+
+For the most part, this script can be controlled by popups and dialogs,
+you can access anything important by right-clicking and choosing the
+items in the "Vincula" menu.  You can also choose some things from the
+mIRC Command menu at the top, in between DCC and Window, in the
+"Vincula" submenu.
+
+-----------------------------------------------------------------------
+
+To load your passport information so that you can connect through
+passport:
+
+Go to http://chat.msn.com and join any room (even one that doesn't
+exist).
+
+Once the page opens, right-click on the page and choose View Source.
+
+Hopefully it opens the View Source in Notepad, and once it's open
+just save it wherever you like.
+
+Now, back in mIRC, type:
+
+/msn.getpp
+
+or choose "Update Passport information" from the top menu, and choose
+the file you just saved.
+
+It should scan through the file and say that it found the passport
+info.
+
+-----------------------------------------------------------------------
+
+Joining a room:
+
+After issuing any of the below room-join commands, the script will ask
+you for a nickname.  This DOES allow you to use almost any nickname you
+desire.  If you want to use a unicode name, make sure you check the box
+that says "Name is in Unicode format."  If you are using plain ASCII in
+the name (such as directly typing Alt+0169 to get ©), then leave the
+box unchecked.  Also, if you leave the name entry box blank, Vincula
+will use an appropriate default nickname, either the Passport's own
+nickname or your current nickname with Guest_ (mIRC will show this as
+> instead of Guest_) added on to it.
+
+/msn %#RoomName [key]
+---------------------
+Joins a room using the loaded passport info.  If you supply a key, it
+will use this key when joining.
+
+/msn -g %#RoomName [key]
+------------------------
+Joins a room using a Guest nickname (you will be asked for a name).
+
+/joinurl [-g] http://chat.msn.com... [key]
+------------------------------------------
+Joins the room based on the address for the room.  If you want to join
+in Guest mode, use -g just like in the /msn command.
+
+/joinhex [-g] 2523526F6F6D4E616D65 [key]
+----------------------------------------
+Joins a room via the hex name.  Use -g to join as a Guest.
+
+/joins [-g|-k key|-gk key] Room Name
+------------------------------------
+Joins a room that has spaces in the name.
+You can use either -g, -k, or both. -g of course joins as a Guest. -k
+allows you to use a key, like this:
+/joins -k somekey My Chat Room
+That would join the room "My Chat Room" using the key "somekey". If you
+want to combine -g and -k, just type it as either -gk or -kg and
+include the key, for example:
+/joins -gk somekey My Chat Room
+
+-----------------------------------------------------------------------
+
+Other commands:
+
+/msn.setup
+----------
+Lets you set the font that MSN users will see, along with a bunch of
+other options for the script (including those below).  If you want to
+use a font that's not on the list just type the name in, Vincula
+doesn't care.
+A description of the other options is as follows:
+
+Show profile icon:
+    Makes MSN Chat users see the profile icon next to your name in the
+    room's user list.  This icon is the little blue guy you may have
+    seen next to people's names, and is set by /prop $me MSNPROFILE 1
+Decode incoming text:
+    Passes most incoming messages through the script's Unicode decoder
+    so that names and text which use special characters can be read.
+Show users' colors:
+    Allows you to see what colors people are speaking in, and also if
+    they are using Bold and/or Underlined text.  Because of an mIRC
+    limitation, you cannot see Italics, nor specific fonts.
+Auto password usage:
+    Vincula automatically stores any Ownerkey that it sees, whether it
+    is from you creating a room, or it was someone else setting it in
+    a room you were an owner in.  This option tells Vincula to use the
+    key that it has stored whenever you join a room.
+Encode outgoing text:
+    This option will encode any outgoing text, so that MSN Chat users
+    will actually be able to see any special characters you use, such
+    as † or §.
+
+/msn.getpp
+----------
+Use this to update your passport info, according to the instructions
+that are above.
+
+/msncolor <on|off>
+------------------
+Makes the script show you what colors the people are using to speak,
+also shows bold. Does not show Underline (yet), or Italic, or the
+actual font. It's off by default, just because it bugs me.
+This option can also be changed from /msn.setup on a per-room basis.
+
+/msndebug <on|off>
+------------------
+This is more of a developer command for me, it's really not of much use
+to anyone else.  It opens a window and shows you all of the data that
+passes through the script.
+
+/msndecode <on|off>
+-------------------
+Turns on or off the incoming text decoder. It's on by default.
+To turn it off:
+/msndecode off
+This option can also be changed from /msn.setup on a per-room basis.
+
+/msnencode <on|off>
+-------------------
+Turns on or off the outgoing text encoder. It's off by default.
+To turn it on:
+/msnencode on
+This option can also be changed from /msn.setup on a per-room basis.
+
+/pass <password>
+----------------
+An alias to /mode $me +h <password>.  Allows you to use a room's host
+or owner key to make yourself a host (+o) or owner (+q).
+
+/msn.updatefonts
+----------------
+Not recommended to use often, but this will allow you to update the
+font name cache, which is useful if you have added or deleted any fonts
+since you loaded this script.
+
+-----------------------------------------------------------------------
+
+Custom Identifiers:
+
+$msn.decode(text)
+-----------------
+Returns text, as passed through the script's Unicode decoder. Most
+useful for Unicode nicknames.
+
+$msn.encode(text)
+-----------------
+Returns text, as passed through the script's Unicode encoder. Most
+useful for using non-alphanumeric characters in speaking and nicknames.
+
+$msn.pass / $msn.pass(N)
+------------------------
+Makes a randomly generated password N characters long. If N is not
+supplied, it will create an eight character password.
+
+$msn.roompass / $msn.roompass(%#room)
+-------------------------------------
+Returns the stored room owner key for the active channel (if used in
+the editbox without %#room), or the owner key for for %#room.
+
+$msn.tohex(text)
+----------------
+Returns text in hexadecimal format.
+
+$msn.ud1
+--------
+Returns the current MSN Chat UserData1 entry from the registry. The MSN
+Chat Control uses this entry to set a room key when you create a new
+room through the MSN Chat website.  Vincula generates a random key and
+does not use the UserData1 in any way.
+
+$msn.unhex(hex)
+---------------
+Returns a hexadecimal number in ASCII format.
+
+-----------------------------------------------------------------------
+
+A few comments for MSN scripters:
+
+Unlike most scripts, this script converts WHISPER commands into
+standard IRC PRIVMSG commands, and vice-versa. It also converts NOTICE
+into PRIVMSG and back.  Basically, what this means for you is that you
+can use a simple "on *:TEXT:*:?:" to trigger a whisper event, instead
+of having to use "raw whisper:*:".  Just a little trick to make your
+life easier.
+
+Also, for those who would be interested in changing how Vincula will
+display all the events (such as messages, kicks, topic changes, etc.),
+you may edit that part of the script as long as you don't mess anything
+up in the process.  I won't be able to help you if you screwed up
+something, so you'd just have to reinstall the original version of the
+script and start over.
+
+-----------------------------------------------------------------------
+
+Extra information:
+
+Real Name: Brandon A.
+Nickname: eXonyte
+E-mail: exonyte1@exonyte.dyndns.org
+
+Official Website: http://exonyte.dyndns.org
+
+I'd like to thank my testers: Trad, Moto, Atti, and Neo. To anyone else
+that I sent a copy of this thing to and forgot about: Sorry! Let me
+know and I'll put your name in here too!
+
+Why Vincula?
+Vincula is a plural form of Vinculum, which means "A bond or tie."
+Since the nature of this script is multiple "ties" to MSN Chat, I think
+the name fits it fairly well.
+
+If you would like to include this MSN connection addon with your own
+script, I only ask that it remain completely unmodified, except for the
+text display events at the beginning of the script as was mentioned in
+the above section.
+
+This addon contains a few things that I did not write:
+
+URL Decoder by Techster
+Available at: http://www.mircscripts.org/comments.php?id=1225
+
+Truetype Font Attribute reader by Kamek
+Available at: http://www.mircscripts.org/comments.php?id=1341
+
+The COM Registry Reading identifier was also written by someone else
+but I found it on a message board somewhere, and they claimed they got
+it from the mircscripts.org Web Board.  If someone can claim ownership
+of the code, please let me know.
+
+The nHTMLn DLL is © 2001 Necroman
+Available at: http://www.wot.net/~necroman/nn2.htm
