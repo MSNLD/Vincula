@@ -535,7 +535,7 @@ alias msn.writehtml {
   if (((%msnpass.cookie == $null) || (%msnpass.ticket == $null) || (%msnpass.profile == $null)) && (!$msn.get(999,guest))) { msn.getpp }
 
   write -c $+(",$scriptdir,msnchat.html,") <HTML><BODY STYLE="margin:0">
-  %x <OBJECT ID="ChatFrame" CLASSID="CLSID:29c13b62-b9f7-4cd3-8cef-0a58a1a99441" width="100%">
+  %x <OBJECT ID="ChatFrame" CLASSID="CLSID:7a32634b-029c-4836-a023-528983982a49" width="100%">
   %x <PARAM NAME="HexRoomName" VALUE=" $+ $msn.tohex($1) $+ ">
   if ($msn.get(999,nick) == $null) %x <PARAM NAME="NickName" VALUE="null">
   else %x <PARAM NAME="NickName" VALUE=" $+ $msn.get(999,nick) $+ ">
