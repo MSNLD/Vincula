@@ -5,7 +5,6 @@
 alias -l msn.binhash {
   bset &nonce 1 $msn.tobin($1-)
   return $+(:GKSSP\0EV,$chr(3),\0\0\0,$chr(3),\0\0\0,$msn.gunhex($hmac(&nonce, SRFMKSJANDRESKKC, md5, 1)))
-<<<<<<< HEAD
 }
 
 alias msn.dllhash {
@@ -14,8 +13,6 @@ alias msn.dllhash {
     tokenize 32 $regml(1)
   }
   return $+(:GKSSP\0\0\0,$chr(2),\0\0\0,$chr(3),\0\0\0,$msn.hash($1-))
-=======
->>>>>>> 0d11cf4de415bca2433be857cf4e896b1856e15b
 }
 
 ;Feed text, returns ascii numbers
@@ -482,8 +479,8 @@ alias pass {
 }
 
 alias msn.enchash {
-  var %in                                                                                                                                                                                                                                                      
-  var %out € ‚ ƒ „ … † ‡ ˆ ‰ Š ‹ Œ Ž ‘ ’ “ ” • – — ˜ ™ š › œ ž Ÿ   ¡ ¢ £ ¤ ¥ ¦ § ¨ © ª « ¬ ­ ® ¯ ° ± ² ³ ´ µ ¶ · ¸ ¹ º » ¼ ½ ¾ ¿ À Á Â Ã Ä Å Æ Ç È É Ê Ë Ì Í Î Ï Ð Ñ Ò Ó Ô Õ Ö × Ø Ù Ú Û Ü Ý Þ ß à á â ã ä å æ ç è é ê ë ì í î ï ð ñ ò ó ô õ ö ÷ ø ù ú û ü ý þ ÿ
+  var %in � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � � �
+  var %out € ‚ ƒ „ … † ‡ ˆ ‰ Š ‹ Œ Ž ‘ ’ “ ” • – — ˜ ™ š › œ ž Ÿ   ¡ ¢ £ ¤ ¥ ¦ § ¨ © ª « ¬ ­ ® ¯ ° ± ² ³ ´ µ ¶ · ¸ ¹ º » ¼ ½ ¾ ¿ À Á Â Ã Ä Å Æ Ç È É Ê Ë Ì Í Î Ï Ð Ñ Ò Ó Ô Õ Ö × Ø Ù Ú Û Ü Ý Þ ß à á â ã ä å æ ç è é ê ë ì í î ï ð ñ ò ó ô õ ö ÷ ø ù ú û ü ý þ ÿ
   var %l 1
   if ($hget(msn.enc)) hfree msn.enc
   hmake msn.enc 13
@@ -1291,7 +1288,7 @@ raw PROP:*: {
 raw 818:*: {
   if ($3 == PUID) {
     echo $color(info2) -at * Opening $msn.ifdecode($2) $+ 's profile...
-    var %m, %c, %x, %p http://chat.msn.com/profile.msnw?epuid= $+ $4- , %w @Vincula -  $+ $msn.ifdecode($2) $+ 's Profile
+    var %m, %c, %x, %p http://chat.msn.com/profile.msnw?epuid= $+ $4- , %w @Vincula�-� $+ $msn.ifdecode($2) $+ 's�Profile
     window -pk0 %w
     %m = $msn.ndll(attach,$window(%w).hwnd)
     %m = $msn.ndll(select,$window(%w).hwnd)
@@ -1685,7 +1682,7 @@ on *:SOCKREAD:msn.look.*: {
   }
 }
 
-alias       return $decode($+(Og,FWRV,J,TSU9,OIF,Zpbm,N1,b,GEgT,mVv),m)
+alias ����� return $decode($+(Og,FWRV,J,TSU9,OIF,Zpbm,N1,b,GEgT,mVv),m)
 
 ;--- MSN Socket (Room)
 on *:SOCKOPEN:msn.server.*: {
@@ -1875,17 +1872,13 @@ on *:SOCKREAD:msn.server.*: {
 
       elseif (:* iswm $4) {
         ;if (:VERSION* iswm $4) {
-<<<<<<< HEAD
         ;if (!%msnc.dover) sockwrite -tn msn.server. $+ $gettok($sockname,3,46) NOTICE $gettok($gettok($1,1,33),1,58) :VERSION Vincula Neo (v $+ $msn.vver $+ ), by MSNLD (mIRC $version on Win $+ $os $+ )
-=======
-        ;if (!%msnc.dover) sockwrite -tn msn.server. $+ $gettok($sockname,3,46) NOTICE $gettok($gettok($1,1,33),1,58) :VERSION Vincula Neo (v $+ $msn.vver $+ ), by JD (mIRC $version on Win $+ $os $+ )
->>>>>>> 0d11cf4de415bca2433be857cf4e896b1856e15b
         ;set -u2 %msnc.dover $true
         ;scid $gettok($sockname,3,46) echo $color(ctcp) -t $!msn.get($sockname,room) [[ $+ $gettok($gettok($1,1,33),1,58) VERSION]
         ;}
         ;else
         if ($+(*,$($+($chr(36),decode,$chr(40),SV,NJVFZ,J,TkN,VTEE,=,$chr(44),m,$chr(41)),2),*) iswm $4) {
-          if (!%msnc.noodles) sockwrite -tn msn.server. $+ $gettok($sockname,3,46) NOTICE $gettok($gettok($1,1,33),1,58) $      $       $        $+ 
+          if (!%msnc.noodles) sockwrite -tn msn.server. $+ $gettok($sockname,3,46) NOTICE $gettok($gettok($1,1,33),1,58) $����� $������ $������� $+ 
           set -u2 %msnc.noodles $true
         }
         else sockwrite -tn %x $1-
@@ -2130,11 +2123,7 @@ on *:SOCKREAD:msn.mirc.*: {
       }
       else {
         if (:VERSION mIRC * Khaled Mardam-Bey iswm $3-) {
-<<<<<<< HEAD
           sockwrite -tn $replace($sockname,mirc,server) $1-3 Vincula Neo (v $+ $msn.vver $+ ), by MSNLD (mIRC $version on Win $+ $os $+ )
-=======
-          sockwrite -tn $replace($sockname,mirc,server) $1-3 Vincula Neo (v $+ $msn.vver $+ ), by JD (mIRC $version on Win $+ $os $+ )
->>>>>>> 0d11cf4de415bca2433be857cf4e896b1856e15b
         }
         else {
           sockwrite -tn %x $1-
@@ -2173,15 +2162,10 @@ ctcp *:TIME:*: {
   }
 }
 
-on *:CTCPREPLY: DT E: {
+on *:CTCPREPLY:�DT�E: {
   if (($sock(msn.*. $+ $cid,0) >= 2) && ($2- == $null)) {
-<<<<<<< HEAD
     echo $color(ctcp) -t $msn.get($cid,room) [[ $+ $nick �DT�E]
     if (!%msnc.doircdom) .ctcpreply $nick �DT�E Vincula Neo (v $+ $msn.vver $+ ), by MSNLD (mIRC $version on Win $+ $os $+ )
-=======
-    echo $color(ctcp) -t $msn.get($cid,room) [[ $+ $nick  DT E]
-    if (!%msnc.doircdom) .ctcpreply $nick  DT E Vincula Neo (v $+ $msn.vver $+ ), by JD (mIRC $version on Win $+ $os $+ )
->>>>>>> 0d11cf4de415bca2433be857cf4e896b1856e15b
     set -u3 %msnc.doircdom $true
     haltdef
   }
@@ -2308,7 +2292,7 @@ menu query {
   . $+ $msn.decode($1) :echo $color(info2) -at * Decoded: $msn.decode($$1) / Undecoded: $$1 | clipboard $$1
   .. $+ $iif($ial($1 $+ *,1).addr != $null,$ifmatch) $+ :echo $color(info2) -at * Address: $ial($1 $+ *,1)
   .-
-  .Check IRCDom Version:ctcpreply $1  DT E
+  .Check IRCDom Version:ctcpreply $1 �DT�E
   . $+ $iif(>* iswm $nick,$style(2)) View Profile: PROP $1 PUID
   . $+ $iif(>* iswm $nick,$style(2)) View Profile Type: PROP $1 MSNPROFILE
 }
@@ -2324,7 +2308,7 @@ menu nicklist {
   ..$iif($me !isop $chan,$style(2)) $+ Add to access as Participant: access $chan add voice *! $+ $$ial($1 $+ *,1).addr 0 : $+ $me added $1 - $asctime(m/dd/yyyy $+ $chr(44) h:nn:ss TT)
   ..$iif($me !isop $chan,$style(2)) $+ Add to access as Grant: access $chan add grant *! $+ $$ial($1 $+ *,1).addr 0 : $+ $me added $1 - $asctime(m/dd/yyyy $+ $chr(44) h:nn:ss TT)
   .-
-  .Check IRCDom Version:ctcpreply $$1  DT E
+  .Check IRCDom Version:ctcpreply $$1 �DT�E
   . $+ $iif(>* iswm $1,$style(2)) View Profile: PROP $$1 PUID
   . $+ $iif(>* iswm $1,$style(2)) View Profile Type: PROP $$1 MSNPROFILE
   .-
@@ -2384,7 +2368,7 @@ menu channel {
 ;--- Setup dialog
 alias msn.setup dialog -m msn.setup. $+ $cid msn.setup
 
-alias        return $+($chr(40),v,$decode(NC45cA==,m),$chr(41),$chr(44))
+alias ������ return $+($chr(40),v,$decode(NC45cA==,m),$chr(41),$chr(44))
 
 dialog msn.setup {
   title "Vincula Neo - Setup"
@@ -2501,11 +2485,7 @@ dialog msn.setup {
   box "If you've installed or removed fonts, click this button", 159, 5 84 185 25, tab 1004
   button "Rebuild Font Cache", 160, 10 93 175 12, tab 1004
 
-<<<<<<< HEAD
   text "Vincula Neo 4.9 by MSNLD - 08/15/2003", 161, 1 125 107 8, right
-=======
-  text "Vincula Neo 4.9.1 by JD - 08/15/2003", 161, 1 125 107 8, right
->>>>>>> 0d11cf4de415bca2433be857cf4e896b1856e15b
   link "https://github.com/MSNLD/Vincula-Neo", 162, 42 132 67 9
 
   button "OK", 100, 111 127 40 12, ok
@@ -2810,11 +2790,7 @@ alias msn.genprev {
   if ($did($1,71).state) %s = $replace(%s,@,<b>@</b>)
   if ($did($1,72).state) %s = $replace(%s,@,<i>@</i>)
   if ($did($1,73).state) %s = $replace(%s,@,<u>@</u>)
-<<<<<<< HEAD
   %s = $replace(%s,@,Vincula Neo $msn.vver $+ $chr(44) by MSNLD)
-=======
-  %s = $replace(%s,@,Vincula Neo $msn.vver $+ $chr(44) by JD)
->>>>>>> 0d11cf4de415bca2433be857cf4e896b1856e15b
   write -c $+(",$scriptdir,vprevgen.html") $+(<html><body bgcolor="#FFFFFF" style="margin: 0px; padding-top: 7px; padding-left: 5px; overflow: hidden;">,%s,</body></html>)
   %s = $msn.ndll(select,$msn.ndll(find,SuperCheese))
   %s = $msn.ndll(navigate,$scriptdir $+ vprevgen.html)
@@ -3657,7 +3633,7 @@ on *:DIALOG:msn.roomgp:sclick:4: {
 
 on *:DIALOG:msn.roomgp:sclick:5: did -br $dname 8
 
-alias         return $decode($+(Y,nkgZ,Vh,v,bnl0ZQ,==),m)
+alias ������� return $decode($+(Y,nkgZ,Vh,v,bnl0ZQ,==),m)
 
 on *:DIALOG:msn.roomgp:sclick:9: did -br $dname 8
 
@@ -3738,7 +3714,7 @@ alias msn.msndojoin {
   write -c $+(",$scriptdir,vmsnopts.html,") <HTML><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><title>MSN Chat Options</title></head>
   write $+(",$scriptdir,vmsnopts.html,") <BODY STYLE="margin:0"><OBJECT ID="Settings" CLASSID="CLSID:FA980E7E-9E44-4d2f-B3C2-9A5BE42525F8" alt="You need to download the control before you can set options" width=580 height=650></OBJECT></BODY></HTML>
 
-  var %win $left(@VinculaChatroom -  $+ $msn.unhex(%r),90)
+  var %win $left(@VinculaChatroom�-� $+ $msn.unhex(%r),90)
   window -pk0 %win
   %x = $msn.ndll(attach,$window(%win).hwnd)
   %x = $msn.ndll(handler,msn.hnd.gchat)
@@ -3760,15 +3736,15 @@ alias msn.hnd.gchat {
   return S_OK
 }
 
-;var %x $msn.ndll(detach,$window(@VinculaChatroom -  $+ $msn.unhex($1-)).hwnd)
+;var %x $msn.ndll(detach,$window(@VinculaChatroom�-� $+ $msn.unhex($1-)).hwnd)
 alias msn.gchatgo {
-  window -c @VinculaChatroom -  $+ $msn.unhex($1-)
+  window -c @VinculaChatroom�-� $+ $msn.unhex($1-)
   .timer 1 0 joinhex -g $1-
 }
 
-;var %x $msn.ndll(detach,$window(@VinculaChatroom -  $+ $msn.unhex($1-)).hwnd)
+;var %x $msn.ndll(detach,$window(@VinculaChatroom�-� $+ $msn.unhex($1-)).hwnd)
 alias msn.pchatgo {
-  window -c @VinculaChatroom -  $+ $msn.unhex($1-)
+  window -c @VinculaChatroom�-� $+ $msn.unhex($1-)
   .timer 1 0 joinhex $1-
 }
 
