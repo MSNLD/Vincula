@@ -1,10 +1,10 @@
-Vincula Neo (v4.9) - eXonyte's MSN Chat connection script
+Vincula Neo (v4.9.1) - eXonyte's MSNLD Chat connection script
 
-Date: Saturday, October 11, 2003
+Date: Date: Monday, May 8, 2023
 
 -----------------------------------------------------------------------
 
-Requires mIRC 6.x, only tested in 6.03 and 6.1.
+Requires mIRC 6.x, only tested in 7.72
 WILL NOT work in mIRC 5.91 or lower.
 
 If you want to know things like the socket names, search in this file
@@ -16,6 +16,21 @@ likely conflict with it.  MTS engine support may be added at a future
 date to correct this, or the display events can be modified at will.
 
 -----------------------------------------------------------------------
+
+v4.9.1 - What's new:
+- Added Vincula self updater.
+- Changed MSN Chat server IP to reflect the MSNLD Chat Server.
+- Disabled $msn.decode, $msn.encode and $msn.ifdecode identifiers as they are
+  no longer relevant now that mIRC can display UTF8.
+- Added $msn.binhash identifier to calculate authentication.
+- Removed $msn.hash and $msn.dllhash identifiers.
+- Removed old Vincula settings updater.
+- Fixed /hmake error when hash table msn.roomips already exists.
+- Fixed GateKeeper version 3 authentication header identifying itself as
+  GateKeeper version 2.
+- Fixed GateKeeper v3 hash only supporting IP addresses, hash now also supports
+  server hostnames as the original MSN Chat OCX does.
+- Fixed data being UTF8 encoded by mIRC by using binary variables on sockread.
 
 v4.9 - What's new:
 - You can change nicknames and clone again.
@@ -209,7 +224,7 @@ commands, Vincula will ask you for a nickname.  This DOES allow you to
 use almost any nickname you desire.  If you want to use a unicode name,
 make sure you check the box that says "Name is in Unicode format."  If
 you are using plain ASCII in the name (such as directly typing Alt+0169
-to get ©), then leave the box unchecked.  Also, if you leave the name
+to get ï¿½), then leave the box unchecked.  Also, if you leave the name
 entry box blank, Vincula will use an appropriate default nickname.
 
 All of the below commands support the -g and -c options, as well as 
@@ -304,7 +319,7 @@ Decode incoming text:
 Encode outgoing text:
     This option will encode any outgoing text, so that MSN Chat users
     will actually be able to see any special characters you type, such
-    as † or §.
+    as ï¿½ or ï¿½.
 Show users' colors:
     Allows you to see what colors people are speaking in, and also if
     they are using Bold and/or Underlined text.  Because of an mIRC
@@ -713,10 +728,10 @@ Available at: http://www.mircscripts.org/comments.php?id=1225
 Truetype Font Attribute reader by Kamek
 Available at: http://www.mircscripts.org/comments.php?id=1341
 
-Registry DLL for mIRC v1.05 is © 1999 DragonZap
+Registry DLL for mIRC v1.05 is ï¿½ 1999 DragonZap
 Available at: http://www.dim-bulb.net/~dragonzap/dlls/
 
-The nHTMLn DLL is © 2001 Necroman
+The nHTMLn DLL is ï¿½ 2001 Necroman
 Available at: http://www.wot.net/~necroman/nn2.htm
 Unofficially Updated to version 2.92 by Dan
 Available at: http://www.mircscripts.org/comments.php?id=1439
@@ -781,7 +796,7 @@ v4.3.1 - What's new:
 v4.3 - What's new:
 - Completely redesigned /msn.setup dialog
   - Added a font preview to the Fonts tab
-  - Added "Add key" editbox+buttons to /msn.setup (Thanks OZZY_10™)
+  - Added "Add key" editbox+buttons to /msn.setup (Thanks OZZY_10ï¿½)
   - Added "Script" box to font selection
   - Added hide joins/parts/kicks options
   - Added "Use default MSN Chat sounds" button to the sounds tab
@@ -858,7 +873,7 @@ v4.2 - What's new:
   It will ask you before it applies any new CLSIDs.
 - /joins will now encode room names if it thinks it needs to, so you
   can do:
-  /joins My†Room
+  /joins Myï¿½Room
   and it will join it properly. It's not perfect though, so it might
   give a wrong room name now and then.
 - Changed the "Nickname is in Unicode format" checkbox in the Enter
@@ -1012,4 +1027,4 @@ v3.5 - What's new:
 v3.4 - Initial release
 
 -----------------------------------------------------------------------
-Copyright © 2002-2003 eXonyte                  Last Updated: 09/14/2003
+Copyright ï¿½ 2002-2003 eXonyte                  Last Updated: 09/14/2003
