@@ -1,18 +1,21 @@
-;--- Vincula Neo (v4.9.1)
+;--- Vincula Neo (v4.9.2)
 ;--- https://github.com/MSNLD/Vincula-Neo
 
 ;--- OCXless stuff
 alias -l msn.binhash {
-  bset &nonce 1 $msn.tobin($1-)
-  return $+(:GKSSP\0EV,$chr(3),\0\0\0,$chr(3),\0\0\0,$msn.gunhex($hmac(&nonce, SRFMKSJANDRESKKC, md5, 1)))
-}
-
-alias msn.dllhash {
-  if (*:GKSSP* iswm $1-) {
-    var %x, %re = .*:GKSSP\\0.*\\0\\0.*\\0\\0(.*), %y = $regsub($1-,%re,,%x)
-    tokenize 32 $regml(1)
+  var %i 1, %unescaped
+  while (%i <= $numtok($1-, 32)) {
+    var %c = $gettok($1-, %i, 32)
+    if (%c == 92) {
+      inc %i
+      %c = $chr($gettok($1-, %i, 32))
+      %unescaped = %unescaped $replace(%c, n, 10, r, 13, c, 44, t, 9, \, 92, b, 32)
+    }
+    else %unescaped = %unescaped %c
+    inc %i
   }
-  return $+(:GKSSP\0\0\0,$chr(2),\0\0\0,$chr(3),\0\0\0,$msn.hash($1-))
+  bset &nonce 1 $gettok(%unescaped, $+(-,$calc($len($sock($sockname).addr)+8),-), 32)
+  return $+(:GKSSP\0EV,$chr(3),\0\0\0,$chr(3),\0\0\0,$msn.gunhex($hmac(&nonce, SRFMKSJANDRESKKC, md5, 1)))
 }
 
 ;Feed text, returns ascii numbers
@@ -490,7 +493,7 @@ alias msn.enchash {
   }
 }
 
-alias msn.vver return 4.9.1
+alias msn.vver return 4.9.2
 
 alias msn.getpp {
   if ($timer(.msn.agpp) >= 1) {
@@ -842,10 +845,6 @@ alias msn.roomexists {
 }
 
 alias msn.msnocx return | run regsvr32 /s $+(",$msn.registry(HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Internet Settings\ActiveX Cache\\0),\MSNChat45.ocx")
-
-alias msn.hackocx return | run regsvr32 /s $+(",$scriptdir,msnchatx.ocx")
-
-alias msn.resetocx return | msn.hackocx | .timer 1 5 msn.msnocx
 
 ;--- Local Aliases
 alias msn.sockerr {
@@ -1226,12 +1225,6 @@ on *:START: {
   if ($msn.ini(debug)) window @debug
   var %p = $iif($msn.ini(selpp),$msn.ini(selpp),none)
   echo $color(info2) -st * Vincula Neo $msn.vver $chr(124) UD1: $msn.ud1 $chr(124) Current Passport: %p
-  if (!$msn.ini(msnchatx)) {
-    echo $color(info2) -ta * Installing MSNChatX OCX (if you become Guest_null please type /msn.msnocx in here and that should fix it)...
-    msn.ini msnchatx $true
-    msn.resetocx
-  }
-  ;msn.hackocx
   ;msn.msnocx
   if (!$msn.ini(ppinfo)) msn.ini ppinfo *.*.*/*t=*p=*
   if (!$msn.ini(errcod)) msn.ini errcod *passport*ec=e*
@@ -1585,8 +1578,7 @@ on *:SOCKREAD:msn.look.*: {
     if (AUTH GateKeeper* iswm $1-) {
       ;if ($sock(msn.client.lm $+ $right($sockname,4)).status == active) sockwrite -tn msn.client.lm $+ $right($sockname,4) %read
       if (:GKSSP* iswm $4) {
-        var %x, %re = AUTH GateKeeper.* S :GKSSP\\0.*\\0\\0.*\\0\\0(.*), %y = $regsub($1-,%re,,%x)
-        sockwrite -tna $sockname $1-3 $msn.binhash($regml(1) $+ $sock($sockname).addr) $+ $msn.gunhex($msn.ggate)
+        sockwrite -tna $sockname $1-3 $msn.binhash($gettok($bvar(&read, 1-), 1--3, 32) $msn.tobin($sock($sockname).addr)) $+ $msn.gunhex($msn.ggate)
       }
       if (AUTH GateKeeper*@GateKeeper* iswm $1-) {
         if (*GateKeeper *@* iswm $1-) sockwrite -tn $sockname NICK vincula $+ $ticks
@@ -1678,7 +1670,9 @@ on *:SOCKREAD:msn.look.*: {
       else echo $color(info2) -at * Error $2 $+ : $right($4-,-1)
       return
     }
-    sockread %read
+    bset -az &read
+    sockread -n &read
+    var %read $bvar(&read, 1-).text
   }
 }
 
@@ -1732,10 +1726,12 @@ on *:SOCKCLOSE:msn.server.*: {
 on *:SOCKREAD:msn.server.*: {
   if ($sockerr > 0) { msn.sockerr $sockname read | return }
 
-  var %read, %x msn.mirc. $+ $gettok($sockname,3,46) , %z ).@%615)324].````
+  var %x msn.mirc. $+ $gettok($sockname,3,46) , %z ).@%615)324].````
 
   if ($sockname != msn.server.999) scid $gettok($sockname,3,46) .timer.noop. $+ $gettok($sockname,3,46) 0 100 msn.noop $gettok($sockname,3,46)
-  sockread %read
+  bset -az &read
+  sockread -n &read
+  var %read $bvar(&read, 1-).text
   while ($sockbr > 0) {
     if ($istok(%read,$msn.get($sockname,fullroom),32)) tokenize 32 $reptok(%read,$msn.get($sockname,fullroom),$msn.get($sockname,room),1,32)
     elseif ($istok(%read,: $+ $msn.get($sockname,fullroom),32)) tokenize 32 $reptok(%read,: $+ $msn.get($sockname,fullroom),: $+ $msn.get($sockname,room),1,32)
@@ -1753,8 +1749,7 @@ on *:SOCKREAD:msn.server.*: {
         else sockwrite -tn $sockname AUTH GateKeeperPassport S : $+ $msn.authkey $lf NICK $msn.get($sockname,nick) $lf USER * * " $+ $ip $+ " :Vincula Neo ( $+ $msn.vver $+ ) $lf PROP $ MSNPROFILE : $+ %msnpp.showprof $lf PROP $ SUBSCRIBERINFO %msnpp.subinfo $lf JOIN $msn.get($sockname,fullroom) %pass
       }
       elseif (:GKSSP* iswm $4) {
-        var %x, %re = AUTH GateKeeper.* S :GKSSP\\0.*\\0\\0.*\\0\\0(.*), %y = $regsub($1-,%re,,%x)
-        sockwrite -tna $sockname $1-3 $msn.binhash($regml(1) $+ $sock($sockname).addr) $+ $msn.gunhex($msn.ggate)
+        sockwrite -tna $sockname $1-3 $msn.binhash($gettok($bvar(&read, 1-), 1--3, 32) $msn.tobin($sock($sockname).addr)) $+ $msn.gunhex($msn.ggate)
       }
       elseif (AUTH GateKeeper*@GateKeeper* 0 iswm $1-) {
         if (AUTH GateKeeper*@GateKeeper 0 iswm $1-) {
@@ -2058,7 +2053,9 @@ on *:SOCKREAD:msn.server.*: {
       if ($sock(%x)) sockwrite -tn %x $1-
     }
 
-    sockread %read
+    bset -az &read
+    sockread -n &read
+    var %read $bvar(&read, 1-).text
   }
 }
 
@@ -2485,7 +2482,7 @@ dialog msn.setup {
   box "If you've installed or removed fonts, click this button", 159, 5 84 185 25, tab 1004
   button "Rebuild Font Cache", 160, 10 93 175 12, tab 1004
 
-  text "Vincula Neo 4.9 by MSNLD - 08/15/2003", 161, 1 125 107 8, right
+  text "Vincula Neo 4.9.2 by MSNLD - 08/15/2003", 161, 1 125 107 8, right
   link "https://github.com/MSNLD/Vincula-Neo", 162, 42 132 67 9
 
   button "OK", 100, 111 127 40 12, ok

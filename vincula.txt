@@ -1,4 +1,4 @@
-Vincula Neo (v4.9.1) - MSNLD's Chat connection script (original by eXonyte)
+Vincula Neo (v4.9.2) - MSNLD's Chat connection script (original by eXonyte)
 
 Date: Monday, May 8, 2023
 
@@ -16,6 +16,14 @@ likely conflict with it.  MTS engine support may be added at a future
 date to correct this, or the display events can be modified at will.
 
 -----------------------------------------------------------------------
+
+v4.9.2 - What's new:
+- $msn.binhash now unescapes binary data.
+- Removed $msn.dllhash, which should have been removed previously.
+- Removed regular expression to catch auth nonce that was causing UTF8 issues.
+- Removed MSNChatX references and files
+- Fixed channel server not being read into binary variables - Thanks Liam
+- Fixed subsequent reads not being read into binary variables
 
 v4.9.1 - What's new:
 - Added Vincula self updater.
