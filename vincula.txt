@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 Vincula Neo (v4.9.1) - MSNLD's Chat connection script (original by eXonyte)
 
 Date: Monday, May 8, 2023
@@ -5,6 +6,15 @@ Date: Monday, May 8, 2023
 -----------------------------------------------------------------------
 
 Requires mIRC 7.42+, only tested in 7.72
+=======
+Vincula Neo (v4.9.1) - eXonyte's MSNLD Chat connection script
+
+Date: Date: Monday, May 8, 2023
+
+-----------------------------------------------------------------------
+
+Requires mIRC 6.x, only tested in 7.72
+>>>>>>> 0d11cf4de415bca2433be857cf4e896b1856e15b
 WILL NOT work in mIRC 5.91 or lower.
 
 If you want to know things like the socket names, search in this file
@@ -30,8 +40,12 @@ v4.9.1 - What's new:
   GateKeeper version 2.
 - Fixed GateKeeper v3 hash only supporting IP addresses, hash now also supports
   server hostnames as the original MSN Chat OCX does.
+<<<<<<< HEAD
 - Fixed data being UTF8 encoded by mIRC by using binary variables on sockread
   and by adding switches on sockwrite during authentication.
+=======
+- Fixed data being UTF8 encoded by mIRC by using binary variables on sockread.
+>>>>>>> 0d11cf4de415bca2433be857cf4e896b1856e15b
 
 v4.9 - What's new:
 - You can change nicknames and clone again.
@@ -1028,5 +1042,9 @@ v3.5 - What's new:
 v3.4 - Initial release
 
 -----------------------------------------------------------------------
+<<<<<<< HEAD
 Copyright © 2002-2003 eXonyte                  Last Updated: 09/14/2003
 Copyright © 2023 MSNLD                         Last Updated: See Line 3
+=======
+Copyright � 2002-2003 eXonyte                  Last Updated: 09/14/2003
+>>>>>>> 0d11cf4de415bca2433be857cf4e896b1856e15b
