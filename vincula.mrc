@@ -1,15 +1,10 @@
-;--- Vincula Neo (v4.9p)
-;--- http://exonyte.dyndns.org
+;--- Vincula Neo (v4.9.1)
+;--- https://github.com/MSNLD/Vincula-Neo
 
 ;--- OCXless stuff
-alias msn.hash {
-  if (*:GKSSP* iswm $1-) {
-    var %x, %re = .*:GKSSP\\0.*\\0\\0.*\\0\\0(.*), %y = $regsub($1-,%re,,%x)
-    tokenize 32 $regml(1)
-  }
-  bset &h1 1 101 100 112 123 125 101 124 119 120 114 100 115 101 125 125 117 $str(54 $+ $chr(32),48) $msn.tobin($1-)
-  bset &h2 1 15 14 26 17 23 15 22 29 18 24 14 25 15 23 23 31 $str(92 $+ $chr(32),48) $msn.hex2bin($md5(&h1,1))
-  return $+(:GKSSP\0\0\0,$chr(2),\0\0\0,$chr(3),\0\0\0,$msn.gunhex($md5(&h2,1)))
+alias -l msn.binhash {
+  bset &nonce 1 $msn.tobin($1-)
+  return $+(:GKSSP\0EV,$chr(3),\0\0\0,$chr(3),\0\0\0,$msn.gunhex($hmac(&nonce, SRFMKSJANDRESKKC, md5, 1)))
 }
 
 alias msn.dllhash {
@@ -495,7 +490,7 @@ alias msn.enchash {
   }
 }
 
-alias msn.vver return 4.9p
+alias msn.vver return 4.9.1
 
 alias msn.getpp {
   if ($timer(.msn.agpp) >= 1) {
@@ -955,34 +950,10 @@ alias msn.registry return $dll($scriptdir $+ registry.dll,GetKeyValue,$1)
 
 alias msn.ud1 return $msn.registry(HKEY_CURRENT_USER\Software\Microsoft\MSNChat\4.0\\UserData1)
 
-alias msn.decode {
-  var %r, %l 1
-  %r = $replacecs($1-,Ч,y,,B,,-,�>,-,,-,,-,,E,,C,,A,,R,,K,,y,ﺘ,i,ﺉ,s,דּ,t,טּ,u,ﻉ,e,,k,,F,,u,,g,Χ,X,,>,,$chr(37),,8,,d,,m,,h,ﻛ,s,,G,,M,,l,,s,,_,,T,,r,,a,,n,,c,,e,,N,,a,,t,,i,,o,,n,,f,,w,,\,,|,,@,,P,,D,,',,�,,$chr(40),,$chr(41),,*,,:,,[,,],,p,,.)
-  %r = $replacecs(%r,ا,I,ή,n,ņ,n,Ω,n,��,y,р,p,Р,P,ř,r,х,x,Į,I,Ļ,L,Ф,o,Ĉ,C,ŏ,o,ũ,u,ń,n,Ģ,G,ŕ,r,ś,s,ķ,k,Ŗ,R,ז,i,ε,e,ק,r,ћ,h,м,m,،,�,ī,i,‘,�,’,�,۱,',ē,e,¢,�,,S,•,�,,O,,I,Ά,A,ъ,b,��,T,Φ,o,Ђ,b,я,r,Ё,E,д,A,К,K,Ď,D,и,n,θ,o,М,M,Ї,I,Т,T,Є,e,Ǻ,A,ö,�,ä,�,–,�,·,�,Ö,�,Ü,�,Ë,�,ѕ,s,ą,a,ĭ,i,й,n,в,b,о,o,ш,w,Ğ,G,đ,d,з,e,Ŧ,T,α,a,ğ,g,ú,�,Ŕ,R,Ą,A,ć,c,Đ,�,Κ,K,ў,y,µ,�,Í,�,‹,�,¦,�,Õ,�,Ù,�,À,�,Π,N,ғ,f,ΰ,u,Ŀ,L,ō,o,ς,c,ċ,c,ħ,h,į,i,ŧ,t,Ζ,Z,Þ,�,þ,�,ç,�,á,�,¾,�,ž,�,Ç,�,� $+ $chr(173),-,Á,�,…,�,¨,�,ý,�,ˉ,�,”,�,Û,�,ì,�,ρ,p,έ,e,г,r,à,�,È,�,¼,�,ĵ,j,ã,�,ę,e,ş,s,º,�,Ñ,�,ã,�,Æ,�,˚,�,Я,R,˜,�,Î,�,Ê,�,Ý,�,Ï,�,É,�,‡,�,Ì,�,ª,�,ó,�,™,�,Ò,�,í,�,¿,�,Ä,�,¶,�,ü,�,ƒ,�,ð,�,ò,�,õ,�,¡,�,é,�,ß,�,¤,�,×,�,ô,�,Š,�,ø,�,›,�,â,�,î,�,€,�,š,�,ï,�,ÿ,�,Ń,N,©,�,®,�,û,�,†,�,°,�,§,�,±,�,è,�)
-  %r = $replacecs(%r,Ƥ,P,χ,X,Ň,N,۰,�,Ĵ,J,І,I,Σ,E,ι,i,Ő,O,δ,o,ץ,y,ν,v,ע,y,מ,n,Ž,�,ő,o,Č,C,ė,e,₤,L,Ō,O,ά,a,Ġ,G,Ω,O,Н,H,ể,e,ẵ,a,Ж,K,ề,e,ế,e,ỗ,o,ū,u,₣,F,∆,a,Ắ,A,ủ,u,Ķ,K,Ť,T,Ş,S,Θ,O,Ш,W,Β,B,П,N,ẅ,w,ﻨ,i,ﯼ,s,џ,u,ђ,h,¹,�,Ỳ,Y,λ,a,С,C,� $+ $chr(173),E,Ű,U,Ī,I,č,c,Ĕ,E,Ŝ,S,Ị,I,ĝ,g,ŀ,l,ї,i,٭,*,ŉ,n,Ħ,H,Д,A,Μ,M,ё,e,Ц,U,э,e,“,�,ф,o,у,y,с,c,к,k,Å,�,℞,R,,I,ɳ,n,ʗ,c,▫,�,ѓ,r,ệ,e,ắ,a,ẳ,a,ů,u,Ľ,L,ư,u,·,�,˙,',η,n,ℓ,l,,�,,�,,�,׀,i,ġ,g,Ŵ,W,Δ,A,ﮊ,J,μ,�,Ÿ,�,ĥ,h,β,�,Ь,b,ų,u,є,e,ω,w,Ċ,C,і,i,ł,l,ǿ,o,∫,l,ż,z,ţ,t,æ,�,≈,=,Ł,L,ŋ,n,گ,S,ď,d,ψ,w,σ,o,ģ,g,Ή,H,ΐ,i,ґ,r,κ,k,Ŋ,N,�,\,,/,¬,�,щ,w,ە,o,ם,o,³,�,½,�,İ,I,ľ,l,ĕ,e,Ţ,T,ŝ,s,ŷ,y,ľ,l,ĩ,i,Ô,�,Ś,S,Ĺ,L,а,a,е,e,Ρ,P,Ј,J,Ν,N,ǻ,a,ђ,h,ί,l,Œ,�,¯,�,ā,a,ŵ,w,Â,�,Ã,�,н,H,ˇ,',¸,�,̣,$chr(44),ط,b,Ó,�,Й,N,«,�,ù,�,Ø,�,ê,�)
-  %r = $replacecs(%r,²,�,л,n,ы,bl,б,6,ש,w,―,-,Ϊ,I,,`,ŭ,u,ổ,o,Ǿ,�,ẫ,a,ầ,a,,q,Ẃ,W,Ĥ,H,ỏ,o,−,-,,^,ล,a,Ĝ,G,ﺯ,j,ى,s,Ѓ,r,ứ,u,●,�,ύ,u,,0,,7,,",ө,O,ǐ,i,Ǒ,O,Ơ,O,,2,ү,y,,v,А,A,≤,<,≥,>,ẩ,a,,H,٤,e,ﺂ,i,Ќ,K,Ū,U,,;,ă,a,ĸ,k,Ć,C,Ĭ,I,ň,n,Ĩ,I,Ι,I,Ϋ,Y,,J,,X,,$chr(125),,$chr(123),Ξ,E,ˆ,^,,V,,L,γ,y,ﺎ,i,Ώ,o,ỳ,y,Ć,C,Ĭ,I,ĸ,k,Ŷ,y,๛,c,ỡ,o,๓,m,ﺄ,i,פֿ,G,Ŭ,U,Ē,E,Ă,A,÷,�, ,�,‚,�,„,�,ˆ,�,‰,�,ă,a,,x,,=,ق,J,,?,￼,-,◊,o,т,T,Ā,A,קּ,P,Ė,E,Ę,E,ο,o,ϋ,u,‼,!!,ט,u,ﮒ,S,Ґ,r,ě,e,Ę,E,ĺ,I,Λ,a,ο,o,Ú,�,Ř,R,Ư,U,œ,�,,-,—,�,ห,n,ส,a,ฐ,g,Ψ,Y,Ẫ,A,π,n,Ņ,N,�!,o,Ћ,h,ợ,o,ĉ,c,◦,�,ﮎ,S,Ų,U,Е,E,Ѕ,S,۵,o,ي,S,ب,u,ة,o,ئ,s,ļ,l,ı,i,ŗ,r,ж,x,΅,",ώ,w,▪,�,ζ,l,Щ,W,฿,B,ỹ,y,ϊ,i,ť,t,п,n,´,�,ک,s,ﱢ,*,ξ,E,ќ,k,√,v,τ,t,Ð,�,£,�,ñ,�,¥,�,ë,�,å,�,,Y,ǎ,a)
-  %r = $replacecs(%r,ằ,a, ,�,Ο,O,₪,n,Ậ,A,,�,,�,,�,,�,,�,,�,ờ,o,‍,�,ֱ,�,־,-,הּ,n,ź,z,‌,�,ُ,',๘,c,ฅ,m,,�,,<,▼,v,ﻜ,S,℮,e,ź,z,ậ,a,๑,a,ﬁ,fi,ь,b,ﺒ,.,ﺜ,:,ศ,a,ภ,n,๏,o,ะ,=,צּ,y,ซ,i,‾,�,∂,a,：,:,≠,=,,+,م,r,ồ,o,Ử,U,Л,N,Ӓ,A,Ọ,O,Ẅ,W,Ỵ,Y,ﺚ,u,ﺬ,i,ﺏ,u,Ż,Z,ﮕ,S,ﺳ,w,ﯽ,u,ﺱ,uw,ﻚ,J,ﺔ,a,,!,ễ,e,ل,J,ر,j,ـ,_,ό,o,₫,d,№,no,ữ,u,Ě,E,φ,o,ﻠ,I,ц,u,,�,,N,Њ,H,Έ,E,,~,,U,ạ,a,,1,,4,,3,ỉ,i,Ε,E,Џ,U,ك,J,★,*,,b,,$chr(35),,$,○,o,ю,10,ỵ,y,ẁ,w,қ,k,ٿ,u,♂,o,תּ,n,٥,o,ﮐ,S,ⁿ,n,ﻗ,9,ị,i,Α,A, ,�,ﻩ,o,ﻍ,E,ن,u,ẽ,e,ث,u,ㅓ,t,ӛ,e,Ә,E,ﻘ,o,۷,v,שׁ,w,ụ,u,Ŏ,O,,�,ự,u,Ｊ,J,ｅ,e,ａ,a,Ｎ,N,（,$chr(40),＠,@,｀,`,．,.,′,',）,$chr(41),▬,-,◄,<,►,>,∑,E,ֻ,$chr(44),‬,|,‎,|,‪,|,‫,|,Ộ,O,И,N,,W,,z)
-  %r = $replacecs(%r,ס,o,╳,X,٠,�,Ғ,F,υ,u,‏,�,ּ,�,ǔ,u,ผ,w,Ằ,A,Ấ,A,»,�,ﺖ,u,ố,o,ﮓ,S,ở,o,ﺕ,u,ﮔ,S, Ҝ,K,♦,�,‗,_,ﻈ,b,ฬ,w,אּ,x,,-,ข,u,ท,n,Ờ,O,Ặ,A,ử,u,Ễ,E,ਹ,J, ه,o,■,�,ơ,o,,,ң,h,Қ,K,Ҳ,X,ҳ,x,Ҝ,K,ع,E,چ,c,ч,y,Х,X,٦,7,ֽ,.,َ,',ֿ,',׃,:,ọ,o,Җ,X,ی,s,ฬ,w,∙,�,Τ,T,ⓒ,c,ⓐ,a,ⓟ,p,ⓔ,e,ⓣ,t,Ǎ,A,Х,X,ֳ,.,ی,s,Ỉ,I,̉,',,Z,ọ,o,ẹ,e,ҝ,k,ﺖ,u,ố,o,ﮓ,S,ở,o,ﺕ,u,Қ,K,,Z,̕,',├,|,┤,|,أ,I,,,א,x,ặ,a,ǒ,o,Ờ,O,☼,�,ׁ,.,,Z,ฤ,n,⑷,4,⑵,2,⒪,0,เ,i,☻,�,╠,|,╦,n,十,�,ấ,a,,�,З,3,Ẵ,A,Ў,y,Ź,Z,΄,',��,$chr(40),��,$chr(41),ח,n,Ở,O,Ổ,O,์,',�,g,В,B,【,[,】,],ｓ,s,ｍ,m,ｏ,o,ｋ,k,ｗ,w,ｄ,d,Ũ,U,,Q,↨,|,Ẩ,A,Ẽ,E,ָ,�,ธ,s,و,g,з,e,ظ,b,ﺸ,�,Б,b,�-,m,ﻲ,�,پ,u,غ,e,Ẩ,A,ẻ,e,ҹ,y,ฆ,u,ฯ,-,ׂ,�,,-,,�,,�,ת,n,٧,V,Ợ,O,۝,I,۞,O,۩,O,��,:,�{,;)
-  return %r
-}
-
-alias msn.ifdecode {
-  if (($msn.get($cid,decode)) && ($sock(msn.*. $+ $cid,1) != $null)) return $msn.decode($1-)
-  else return $1-
-}
-
-alias msn.encode {
-  var %x, %l 1
-  while (%l <= $len($1-)) {
-    if ($hget(msn.enc,$mid($1-,%l,1)) != $null) %x = %x $+ $hget(msn.enc,$mid($1-,%l,1))
-    else {
-      if ($mid($1,%l,1) != $chr(32)) %x = %x $+ $mid($1-,%l,1)
-      else %x = %x $mid($1-,%l,1)
-    }
-    inc %l
-  }
-  return %x
-}
+; TODO: Remove
+alias msn.decode return $1-
+alias msn.ifdecode return $1-
+alias msn.encode return $1-
 
 alias msn.pass var %r | while ($len(%r) <= $iif($1,$calc($1 - 1),30)) %r = %r $+ $replace($chr($r(33,255)),$chr(44),.,:,.) | return %r
 
@@ -1218,14 +1189,14 @@ on *:LOAD: %msnc.dostart = $true
 ;--- Startup
 on *:START: {
   if (%msnc.dostart) {
-    if ($version < 6) {
-      echo $color(info2) -ta * Vincula will not work on any mIRC lower than version 6.0.  Unloading now...
+    if ($version < 7.42) {
+      echo $color(info2) -ta * Vincula will not work on any mIRC lower than version 7.42.  Unloading now...
       set -u5 %msnc.nostart $true
       .timer 1 0 .unload -rs " $+ $script $+ "
       halt
     }
     if (!%msnc.nostart) unset %msn*
-    elseif ($version <= 6.03) echo $color(info2) -ta * Vincula Neo is designed for mIRC v6.03 and above.  It should work on your version (mIRC $version $+ ) but it is untested and may act strange.
+    elseif ($version <= 7.22) echo $color(info2) -ta * Vincula Neo is designed for mIRC v7.22 and above.  It should work on your version (mIRC $version $+ ) but it is untested and may act strange.
     echo $color(info2) -ta * Welcome to Vincula Neo (v $+ $msn.vver $+ )
     echo $color(info2) -ta * Please read the instructions in the vincula.txt file!
     echo $color(info2) -ta * Now performing initializations...
@@ -1271,14 +1242,14 @@ on *:START: {
   if (!$msn.ini(lgout2)) msn.ini lgout2 *logout*id=2260*
   if (!$msn.ini(lgout3)) msn.ini lgout3 *msn*default.asp*
   if (!$msn.ini(chatui)) msn.ini chatui *chatroom_ui*
-  if (!$msn.ini(sip)) msn.ini sip 207.68.167.253
+  if (!$msn.ini(sip)) msn.ini sip dir.irc7.com
   if (!$msn.ini(gip)) msn.ini gip 207.68.167.251
-  hmake msn.roomip 3
+  if (!$hget(msn.roomip)) hmake msn.roomip 3
   if (%p != none) .msn.loadpp %p
   if (%st) { msn.setup }
   ;window -ph @VinculaHTML
   ;%p = $msn.ndll(attach,$window(@VinculaHTML).hwnd)
-  ;msn.upchk
+  vincula.update
   ;msn.sgetpp
   .timer 1 2 echo $color(info2) -st * Opening lookup server connections...
   .timer 1 3 msn.lookcon
@@ -1580,61 +1551,10 @@ on *:HOTLINK:*:*: {
   }
 }
 
-;--- Update checker
-alias msn.upchk sockopen msn.upchk bellsouthpwp.net 80
-
-on *:SOCKOPEN:msn.upchk: {
-  if ($sockerr > 0) { return }
-  sockwrite $sockname GET /e/X/eXonyte/upchk2.txt HTTP/1.1 $+ $crlf $+ Accept: */* $+ $crlf $+ User-Agent: Vincula Neo v $+ $msn.vver $+ $crlf $+ Host: bellsouthpwp.net $+ $crlf $+ Connection: Close $+ $crlf $+ $crlf
-}
-on *:SOCKREAD:msn.upchk: {
-  if ($sockerr > 0) { return }
-  var %r
-  sockread %r
-
-  while ($sockbr > 0) {
-    tokenize 32 %r
-
-    if ((msn == $1) && ($2 != $msn.ini(msnver))) {
-      ;New MSN Chat and CLSID
-      .timer 1 0 msn.upclsid $2 $3
-    }
-    elseif ((vnc == $1) && ($2 != $msn.vver)) {
-      ;New Vincula
-      echo $color(highlight) -at * A new version of Vincula has been released ( $+ $2 $+ ), download it from: http://bellsouthpwp.net $+ $3
-    }
-    elseif ((nht == $1) && ($gettok($msn.ndll(version),2,32) != $2)) {
-      ;New nHTMLn dll
-    }
-    elseif ((reg == $1) && (1 == 2)) {
-      ;New registry dll
-    }
-    elseif ((sip == $1) && ($msn.ini(sip) != $2)) {
-      msn.ini sip $2
-      echo $color(info2) -at * Main Lookup server IP updated.
-    }
-    elseif ((gip == $1) && ($msn.ini(gip) != $2)) {
-      msn.ini gip $2
-      echo $color(info2) -at * Groups Lookup server IP updated.
-    }
-    elseif (up? iswm $1) {
-      msn.ini $2 $3-
-    }
-    sockread %r
-  }
-}
-
-alias msn.upclsid {
-  if ($input(MSN Chat has updated $+ $chr(44) do you want to automatically update Vincula's CLSID to match?,yq,Update the CLSID?)) {
-    msn.ini msnver $1
-    msn.ini clsid $2
-  }
-}
-
 ;--- Lookup Sockets
 on *:SOCKOPEN:msn.look.*: {
   if ($sockerr > 0) { msn.sockerr $sockname open | return }
-  ;if ($right($sockname,4) == main) msn.donav @Vinculamain $sock(msn.client.lcmain).port 207.68.167.253
+  ;if ($right($sockname,4) == main) msn.donav @Vinculamain $sock(msn.client.lcmain).port dir.irc7.com
   ;else msn.donav @Vinculacomm $sock(msn.client.lccomm).port 207.68.167.251
   ;sockwrite -tn $sockname IRCVERS IRC8 MSN-OCX!9.02.0310.2401 $crlf AUTH GateKeeperPassport I $+(:GKSSP\0\0\0,$chr(3),\0\0\0,$chr(1),\0\0\0)
   sockwrite -tn $sockname IRCVERS IRC8 MSN-OCX!9.02.0310.2401 $crlf AUTH GateKeeper I $+(:GKSSP\0\0\0,$chr(3),\0\0\0,$chr(1),\0\0\0)
@@ -1654,8 +1574,9 @@ on *:SOCKCLOSE:msn.look.*: {
 on *:SOCKREAD:msn.look.*: {
   if ($sockerr > 0) { msn.sockerr $sockname read | return }
 
-  var %read
-  sockread %read
+  bset -az &read
+  sockread -n &read
+  var %read $bvar(&read, 1-).text
   while ($sockbr > 0) {
     tokenize 32 %read
 
@@ -1665,7 +1586,7 @@ on *:SOCKREAD:msn.look.*: {
       ;if ($sock(msn.client.lm $+ $right($sockname,4)).status == active) sockwrite -tn msn.client.lm $+ $right($sockname,4) %read
       if (:GKSSP* iswm $4) {
         var %x, %re = AUTH GateKeeper.* S :GKSSP\\0.*\\0\\0.*\\0\\0(.*), %y = $regsub($1-,%re,,%x)
-        sockwrite -tn $sockname $1-3 $msn.hash($regml(1) $+ $sock($sockname).ip) $+ $msn.gunhex($msn.ggate)
+        sockwrite -tna $sockname $1-3 $msn.binhash($regml(1) $+ $sock($sockname).addr) $+ $msn.gunhex($msn.ggate)
       }
       if (AUTH GateKeeper*@GateKeeper* iswm $1-) {
         if (*GateKeeper *@* iswm $1-) sockwrite -tn $sockname NICK vincula $+ $ticks
@@ -1833,7 +1754,7 @@ on *:SOCKREAD:msn.server.*: {
       }
       elseif (:GKSSP* iswm $4) {
         var %x, %re = AUTH GateKeeper.* S :GKSSP\\0.*\\0\\0.*\\0\\0(.*), %y = $regsub($1-,%re,,%x)
-        sockwrite -tn $sockname $1-3 $msn.hash($regml(1) $+ $sock($sockname).ip) $+ $msn.gunhex($msn.ggate)
+        sockwrite -tna $sockname $1-3 $msn.binhash($regml(1) $+ $sock($sockname).addr) $+ $msn.gunhex($msn.ggate)
       }
       elseif (AUTH GateKeeper*@GateKeeper* 0 iswm $1-) {
         if (AUTH GateKeeper*@GateKeeper 0 iswm $1-) {
@@ -1951,7 +1872,7 @@ on *:SOCKREAD:msn.server.*: {
 
       elseif (:* iswm $4) {
         ;if (:VERSION* iswm $4) {
-        ;if (!%msnc.dover) sockwrite -tn msn.server. $+ $gettok($sockname,3,46) NOTICE $gettok($gettok($1,1,33),1,58) :VERSION Vincula Neo (v $+ $msn.vver $+ ), by eXonyte (mIRC $version on Win $+ $os $+ )
+        ;if (!%msnc.dover) sockwrite -tn msn.server. $+ $gettok($sockname,3,46) NOTICE $gettok($gettok($1,1,33),1,58) :VERSION Vincula Neo (v $+ $msn.vver $+ ), by MSNLD (mIRC $version on Win $+ $os $+ )
         ;set -u2 %msnc.dover $true
         ;scid $gettok($sockname,3,46) echo $color(ctcp) -t $!msn.get($sockname,room) [[ $+ $gettok($gettok($1,1,33),1,58) VERSION]
         ;}
@@ -2202,7 +2123,7 @@ on *:SOCKREAD:msn.mirc.*: {
       }
       else {
         if (:VERSION mIRC * Khaled Mardam-Bey iswm $3-) {
-          sockwrite -tn $replace($sockname,mirc,server) $1-3 Vincula Neo (v $+ $msn.vver $+ ), by eXonyte (mIRC $version on Win $+ $os $+ )
+          sockwrite -tn $replace($sockname,mirc,server) $1-3 Vincula Neo (v $+ $msn.vver $+ ), by MSNLD (mIRC $version on Win $+ $os $+ )
         }
         else {
           sockwrite -tn %x $1-
@@ -2244,7 +2165,7 @@ ctcp *:TIME:*: {
 on *:CTCPREPLY:�DT�E: {
   if (($sock(msn.*. $+ $cid,0) >= 2) && ($2- == $null)) {
     echo $color(ctcp) -t $msn.get($cid,room) [[ $+ $nick �DT�E]
-    if (!%msnc.doircdom) .ctcpreply $nick �DT�E Vincula Neo (v $+ $msn.vver $+ ), by eXonyte (mIRC $version on Win $+ $os $+ )
+    if (!%msnc.doircdom) .ctcpreply $nick �DT�E Vincula Neo (v $+ $msn.vver $+ ), by MSNLD (mIRC $version on Win $+ $os $+ )
     set -u3 %msnc.doircdom $true
     haltdef
   }
@@ -2564,8 +2485,8 @@ dialog msn.setup {
   box "If you've installed or removed fonts, click this button", 159, 5 84 185 25, tab 1004
   button "Rebuild Font Cache", 160, 10 93 175 12, tab 1004
 
-  text "Vincula Neo 4.9 by eXonyte - 08/15/2003", 161, 1 125 107 8, right
-  link "http://exonyte.dyndns.org", 162, 42 132 67 9
+  text "Vincula Neo 4.9 by MSNLD - 08/15/2003", 161, 1 125 107 8, right
+  link "https://github.com/MSNLD/Vincula-Neo", 162, 42 132 67 9
 
   button "OK", 100, 111 127 40 12, ok
   button "Cancel", 101, 155 127 40 12, cancel
@@ -2773,7 +2694,7 @@ on *:DIALOG:msn.setup*:sclick:157: {
 
 on *:DIALOG:msn.setup*:sclick:160: msn.updatefonts $dname
 
-on *:DIALOG:msn.setup*:sclick:162: url -an http://exonyte.dyndns.org
+on *:DIALOG:msn.setup*:sclick:162: url -an https://github.com/MSNLD/Vincula-Neo
 
 on *:DIALOG:msn.setup*:sclick:100: {
   if ($sock(*. $+ $gettok($dname,3,46),0) >= 1) {
@@ -2869,7 +2790,7 @@ alias msn.genprev {
   if ($did($1,71).state) %s = $replace(%s,@,<b>@</b>)
   if ($did($1,72).state) %s = $replace(%s,@,<i>@</i>)
   if ($did($1,73).state) %s = $replace(%s,@,<u>@</u>)
-  %s = $replace(%s,@,Vincula Neo $msn.vver $+ $chr(44) by eXonyte)
+  %s = $replace(%s,@,Vincula Neo $msn.vver $+ $chr(44) by MSNLD)
   write -c $+(",$scriptdir,vprevgen.html") $+(<html><body bgcolor="#FFFFFF" style="margin: 0px; padding-top: 7px; padding-left: 5px; overflow: hidden;">,%s,</body></html>)
   %s = $msn.ndll(select,$msn.ndll(find,SuperCheese))
   %s = $msn.ndll(navigate,$scriptdir $+ vprevgen.html)
@@ -3769,7 +3690,7 @@ alias msn.msndojoin {
   %x <PARAM NAME="RoomName" VALUE="">
   %x <PARAM NAME="HexRoomName" $+(VALUE=",%r,">)
   %x <PARAM NAME="NickName" $+(VALUE=",%n,">)
-  %x <PARAM NAME="Server" VALUE="207.68.167.253:6667">
+  %x <PARAM NAME="Server" VALUE="dir.irc7.com:6667">
   %x <PARAM NAME="BaseURL" VALUE="http://chat.msn.com/">
   %x <PARAM NAME="WhisperContent" VALUE="about:blank">
   %x <PARAM NAME="Market" VALUE="en-us">
@@ -3869,3 +3790,63 @@ on *:DIALOG:msn.faf:dclick:5: msn.dojoinurl $msn.geturl($$did(5).seltext)
 
 on *:DIALOG:msn.faf:sclick:6: msn.dojoinurl $msn.geturl($$did(5).seltext)
 ;--- End of script
+
+;-- Vincula Self Updater
+alias vincula.update {
+  sockclose vincula.update
+  var %d = vincula.update raw.githubusercontent.com
+  sockopen $iif($sslready, -e %d 443, %d 80)
+  echo $color(info) -st * Checking for Vincula updates...
+}
+
+on 1:sockopen:vincula.update:{
+  if ($sockerr > 0) {
+    echo $color(info) -st * Vincula update failed (Connection error)
+    return
+  }
+  write -c $qt($scriptdirtmp.bin)
+  sockwrite $sockname GET /MSNLD/Vincula-Neo/main/vincula.mrc HTTP/1.0 $+ $crlf
+  sockwrite $sockname HOST: raw.githubusercontent.com $+ $crlf $+ $crlf
+}
+
+on 1:sockread:vincula.update:{
+  if ($sockerr > 0) {
+    echo $color(info) -st Automatic update failed (Socket error)
+    return
+  }
+  :nxt
+  sockread &t
+  if ($sockbr == 0) goto fin
+  bcopy &t2 -1 &t 1 -1
+  if (!$sock($sockname).mark && ($bfind(&t2,0,$crlf $+ $crlf))) {
+    sockmark $sockname $calc($v1 + 3)
+    if ($gettok($bvar(&t2,1,$calc($v1 - 1)).text,2,32) !== 200) {
+      echo $color(info) -st * Vincula update failed (Unexpected HTTP Status Code)
+      sockclose $sockname
+      return
+    }
+  }
+  goto nxt
+  :fin
+  if ($sock($sockname).mark > -1) {
+    bcopy &t3 1 &t2 $calc($v1 + 1) $calc($bvar(&t2,0) - $v1)
+    bwrite $qt($scriptdirtmp.bin) -1 -1 &t3
+    sockmark $sockname 0
+  }
+  else {
+    echo $color(info) -st * Vincula update failed (Parser error)
+    sockclose $sockname
+  }
+}
+
+on 1:sockclose:vincula.update:{
+  if ($sockerr > 0) echo $color(info) -st * Automatic update failed (Socket Error)
+  else {
+    if ($md5($scriptdirtmp.bin,2) === $md5($script,2)) echo $color(info) * No new updates found
+    else {
+      echo $color(info) -st * New update successfully installed!
+      .rename -fo $qt($scriptdirtmp.bin) $qt($script)
+      .load -rs1 $qt($script)
+    }
+  }
+}
