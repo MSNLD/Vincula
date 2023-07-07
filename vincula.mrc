@@ -1743,10 +1743,9 @@ on *:SOCKREAD:msn.server.*: {
       if (AUTH GateKeeper*S :OK iswm $1-) {
         if ($msn.ini(usepass)) var %pass $msn.roompass($msn.get($sockname,room))
 
-        ;Add UserRole to this line
-        if ((%msnpp.cookie) && (!$msn.get($sockname,nick))) sockwrite -tn $sockname AUTH GateKeeperPassport S : $+ $msn.authkey $lf PROP $ MSNREGCOOKIE : $+ %msnpp.cookie $lf PROP $ MSNPROFILE : $+ %msnpp.showprof $lf PROP $ SUBSCRIBERINFO %msnpp.subinfo $lf JOIN $msn.get($sockname,fullroom) %pass
-        ;elseif ((%msnpp.cookie) && ($msn.get($sockname,nick))) sockwrite -tn $sockname AUTH GateKeeperPassport S : $+ $msn.authkey $lf NICK $msn.get($sockname,nick) $lf PROP $ MSNREGCOOKIE : $+ %msnpp.cookie $lf PROP $ MSNPROFILE : $+ %msnpp.showprof $lf PROP $ SUBSCRIBERINFO %msnpp.subinfo $lf JOIN $msn.get($sockname,fullroom) %pass
-        else sockwrite -tn $sockname AUTH GateKeeperPassport S : $+ $msn.authkey $lf NICK $msn.get($sockname,nick) $lf USER * * " $+ $ip $+ " :Vincula Neo ( $+ $msn.vver $+ ) $lf PROP $ MSNPROFILE : $+ %msnpp.showprof $lf PROP $ SUBSCRIBERINFO %msnpp.subinfo $lf JOIN $msn.get($sockname,fullroom) %pass
+        if ((%msnpp.cookie) && (!$msn.get($sockname,nick))) sockwrite -tn $sockname AUTH GateKeeperPassport S : $+ $msn.authkey $lf PROP $ MSNREGCOOKIE : $+ %msnpp.cookie $lf PROP $ MSNPROFILE : $+ %msnpp.showprof $lf PROP $ ROLE %msnpp.role $lf PROP $ SUBSCRIBERINFO %msnpp.subinfo $lf JOIN $msn.get($sockname,fullroom) %pass
+        ;elseif ((%msnpp.cookie) && ($msn.get($sockname,nick))) sockwrite -tn $sockname AUTH GateKeeperPassport S : $+ $msn.authkey $lf NICK $msn.get($sockname,nick) $lf PROP $ MSNREGCOOKIE : $+ %msnpp.cookie $lf PROP $ MSNPROFILE : $+ %msnpp.showprof $lf PROP $ ROLE %msnpp.role $lf PROP $ SUBSCRIBERINFO %msnpp.subinfo $lf JOIN $msn.get($sockname,fullroom) %pass
+        else sockwrite -tn $sockname AUTH GateKeeperPassport S : $+ $msn.authkey $lf NICK $msn.get($sockname,nick) $lf USER * * " $+ $ip $+ " :Vincula Neo ( $+ $msn.vver $+ ) $lf PROP $ MSNPROFILE : $+ %msnpp.showprof $lf PROP $ ROLE %msnpp.role $lf PROP $ SUBSCRIBERINFO %msnpp.subinfo $lf JOIN $msn.get($sockname,fullroom) %pass
       }
       elseif (:GKSSP* iswm $4) {
         sockwrite -tna $sockname $1-3 $msn.binhash($gettok($bvar(&read, 1-), 1--3, 32) $msn.tobin($sock($sockname).addr)) $+ $msn.gunhex($msn.ggate)
